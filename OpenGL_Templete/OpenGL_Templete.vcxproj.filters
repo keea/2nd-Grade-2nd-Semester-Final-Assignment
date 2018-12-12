@@ -87,6 +87,9 @@
     <ClInclude Include="CMyHpObject.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="CMyEnemyAttackPatten.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="OpenGL_Templete.cpp">
@@ -150,6 +153,9 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="CMyHpObject.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="CMyEnemyAttackPatten.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

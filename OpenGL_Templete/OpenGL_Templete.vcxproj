@@ -148,6 +148,7 @@
     <ClInclude Include="CMyBullet.h" />
     <ClInclude Include="CMyBulletObject.h" />
     <ClInclude Include="CMyEnemy.h" />
+    <ClInclude Include="CMyEnemyAttackPatten.h" />
     <ClInclude Include="CMyHpObject.h" />
     <ClInclude Include="CMyMath.h" />
     <ClInclude Include="CWaves.h" />
@@ -173,6 +174,7 @@
     <ClCompile Include="CMyBullet.cpp" />
     <ClCompile Include="CMyBulletObject.cpp" />
     <ClCompile Include="CMyEnemy.cpp" />
+    <ClCompile Include="CMyEnemyAttackPatten.cpp" />
     <ClCompile Include="CMyHpObject.cpp" />
     <ClCompile Include="CMyMath.cpp" />
     <ClCompile Include="CWaves.cpp" />
