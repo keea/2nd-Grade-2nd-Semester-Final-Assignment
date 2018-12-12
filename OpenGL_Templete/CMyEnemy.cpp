@@ -34,12 +34,15 @@ bool CMyEnemy::Create(char * filename)
 
 void CMyEnemy::OnDraw()
 {
-	m_pSprite->Draw(m_rect.left, m_rect.top, 0);
+	m_pSprite->Draw(m_rect.left, m_rect.top, 0, 0, 512, 150, 0);
 	m_pHpSprite->Draw(0, 0, 0, 0, m_hp, 15, 0);
 }
 
 void CMyEnemy::OnUpdate(DWORD tick)
 {
+	//적 공격 모션 추가하기.
+	/// 1. 세로 방향에서 3초후 공격(왼쪽 공격후 오른쪽 공격)
+
 }
 
 void CMyEnemy::HaveDamage(int damage)

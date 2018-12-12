@@ -17,8 +17,6 @@ DWORD         g_tick;
 CMyBullet	  g_bullets; //총알 전체 관리하는 객체
 CMyEnemy	  g_enemy;
 
-///총알에 부딪힐 경우 hp 감소
-
 void OnIdle(HWND hwnd);
 void GetMousePostion(HWND hwnd, POINT * pos);
 RECT g_ClientRect;
