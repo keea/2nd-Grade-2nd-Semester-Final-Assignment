@@ -6,7 +6,6 @@
 CMyEnemy::CMyEnemy()
 {
 	m_pSprite = NULL;
-	m_hp = 1024;
 	m_vecPostion.x = 512 >> 1;
 	m_vecPostion.y = 18;
 
@@ -94,6 +93,7 @@ bool CMyEnemy::IsCollision(RECT rect)
 
 void CMyEnemy::Init()
 {
+	m_hp = 1024;
 	m_BtwTimeAttack = 1000;
 	m_currentAttack = 0;
 	m_BtwTimeGap = 3000;

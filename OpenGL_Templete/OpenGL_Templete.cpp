@@ -84,9 +84,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 	GetClientRect(hwnd, &g_ClientRect);
 	g_Char.Create("player.png");
-	g_Char.Init(g_ClientRect.right>>1, g_ClientRect.bottom - 90);
 	g_bullets.Create("bullet.png");
 	g_enemy.Create("enemy.png");
+
+	g_Char.Init(g_ClientRect.right >> 1, g_ClientRect.bottom - 90);
 	g_enemy.Init();
 
 	dsOpenALSoundManager *pSoundManger = GetOpenALSoundManager();
@@ -199,9 +200,10 @@ void OnIdle(HWND hwnd)
 	if (isCollision)
 		g_Char.OnCollisionEnter();
 
+	g_enemy.OnDraw();
 	g_bullets.OnDraw(0, 0);
 	g_Char.OnDraw(300, 300);
-	g_enemy.OnDraw();
+	
 
 	g_OpenGL.EndRender(g_hDC);
 
