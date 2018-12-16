@@ -1,5 +1,6 @@
 #include "CMyEnemy.h"
 #include "CMyEnemyAttack1.h"
+#include "CMyEnemyAttack2.h"
 
 
 CMyEnemy::CMyEnemy()
@@ -35,9 +36,13 @@ bool CMyEnemy::Create(char * filename)
 	CMyEnemyAttack1 * atk1 = new CMyEnemyAttack1();
 	atk1->Create();
 
-	m_attackCount = 1;
+	CMyEnemyAttack2 * atk2 = new CMyEnemyAttack2();
+	atk2->Create();
+
+	m_attackCount = 2;
 
 	m_pAtkPatten[0] = atk1;
+	m_pAtkPatten[1] = atk2;
 
 	return m_pSprite->LoadFromFilename(filename);
 }
@@ -47,7 +52,7 @@ void CMyEnemy::OnDraw()
 	m_pSprite->Draw(m_rect.left, m_rect.top, 0, 0, 512, 150, 0);
 	m_pHpSprite->Draw(0, 0, 0, 0, m_hp, 15, 0);
 	if(m_isAttackUpdate)
-		m_pAtkPatten[m_attackNum]->OnDraw();
+		m_pAtkPatten[m_currentAttack]->OnDraw();
 }
 
 void CMyEnemy::OnUpdate(DWORD tick)
@@ -64,9 +69,9 @@ void CMyEnemy::OnUpdate(DWORD tick)
 
 	if (m_beforeAttackStatus == NOTHING) {
 		if (m_BtwTimeAttack <= 0) {
-			m_attackNum = rand() % m_attackCount;
+			m_currentAttack = rand() % m_attackCount;
 			m_isAttackUpdate = true;
-			m_pAtkPatten[m_attackNum]->OnStart();
+			m_pAtkPatten[m_currentAttack]->OnStart();
 		}
 		else {
 			m_BtwTimeAttack -= tick;
@@ -74,7 +79,7 @@ void CMyEnemy::OnUpdate(DWORD tick)
 	}
 
 	if(m_isAttackUpdate)
-		m_beforeAttackStatus = m_pAtkPatten[m_attackNum]->OnUpdate(tick);
+		m_beforeAttackStatus = m_pAtkPatten[m_currentAttack]->OnUpdate(tick);
 }
 
 void CMyEnemy::HaveDamage(int damage)
@@ -84,13 +89,13 @@ void CMyEnemy::HaveDamage(int damage)
 
 bool CMyEnemy::IsCollision(RECT rect)
 {
-	return m_pAtkPatten[0]->IsCollision(rect);
+	return m_pAtkPatten[m_currentAttack]->IsCollision(rect);
 }
 
 void CMyEnemy::Init()
 {
 	m_BtwTimeAttack = 1000;
-	m_attackNum = 0;
+	m_currentAttack = 0;
 	m_BtwTimeGap = 3000;
 	m_beforeAttackStatus = NOTHING;
 	m_isAttackUpdate = false;

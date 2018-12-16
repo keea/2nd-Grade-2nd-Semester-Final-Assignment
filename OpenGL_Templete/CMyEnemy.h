@@ -13,11 +13,11 @@ protected:
 	int						m_hp;
 	int						m_damage;
 	Vector2					m_vecPostion;
-	CMyEnemyAttackPatten	*m_pAtkPatten[1];
+	CMyEnemyAttackPatten	*m_pAtkPatten[2];
 	int						m_attackCount;
 	int						m_BtwTimeGap;
 	int						m_BtwTimeAttack;
-	int						m_attackNum;
+	int						m_currentAttack;
 	CURRENT_TYPE			m_beforeAttackStatus;
 	bool					m_isAttackUpdate;
 	

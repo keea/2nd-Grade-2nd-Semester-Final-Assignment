@@ -1,8 +1,6 @@
 #include "CMyEnemyAttack1.h"
 #include "Debug.h"
 
-
-
 CMyEnemyAttack1::CMyEnemyAttack1()
 {
 	m_pSprite_guideLine = NULL;
@@ -73,7 +71,7 @@ void CMyEnemyAttack1::OnDraw()
 
 bool CMyEnemyAttack1::IsCollision(RECT rect)
 {
-	if(m_currentType==START && m_currentType == END)
+	if(m_currentType != DOING)
 		return false;
 
 	RECT attackRect = { m_vecPostion.x, m_vecPostion.y,
