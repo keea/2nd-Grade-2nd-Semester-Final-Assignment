@@ -15,6 +15,7 @@ class CMyCharacter : public CMyObject
 {
 protected:	
 	DWORD			 m_interval;
+	dsTexture		 *m_pSpriteHp;
 
 	Vector2			 m_vecDirection;
 	Vector2          m_vecPosition;
@@ -27,8 +28,14 @@ protected:
 	int				 m_width;
 	int				 m_height;
 	int				 m_speed;
-	
 
+	int				 m_hp;
+
+	bool			 m_IsBarrier; //¹æ¾î¸·
+	int				 m_TimeBtwBarrier;
+	bool			 m_barrierEffect;
+
+	
 public:
 	CMyCharacter();
 	~CMyCharacter();
@@ -44,6 +51,11 @@ public:
 	Vector2 GetVecAtkDir() { return m_vecAtkDirection; }
 	Vector2 GetVecPos() { return m_vecPosition; }
 	Vector2 GetCenterPos();
+
+	RECT GetPlayerRect();
+
 	float GetAngle() { return m_angle; }
+
+	void OnCollisionEnter();
 };
 

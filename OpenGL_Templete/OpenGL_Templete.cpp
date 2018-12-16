@@ -87,6 +87,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	g_Char.Init(g_ClientRect.right>>1, g_ClientRect.bottom - 90);
 	g_bullets.Create("bullet.png");
 	g_enemy.Create("enemy.png");
+	g_enemy.Init();
 
 	dsOpenALSoundManager *pSoundManger = GetOpenALSoundManager();
 	dsSound *pSound = pSoundManger->LoadSound("back.wav", true);
@@ -186,13 +187,20 @@ void OnIdle(HWND hwnd)
 	GetMousePostion(hwnd, &pos);
 
 	g_bullets.OnUpdate(tickCount - g_tick);
-	g_bullets.OnDraw(0, 0);
+	
 
 	g_Char.SetRotationAngle(pos);
 	g_Char.OnUpdate(tickCount - g_tick);
-	g_Char.OnDraw(300, 300);
-
+	
 	g_enemy.HaveDamage(g_bullets.GetDamage(g_enemy.GetEnemyRect()));
+	g_enemy.OnUpdate(tickCount - g_tick);
+
+	bool isCollision = g_enemy.IsCollision(g_Char.GetPlayerRect());
+	if (isCollision)
+		g_Char.OnCollisionEnter();
+
+	g_bullets.OnDraw(0, 0);
+	g_Char.OnDraw(300, 300);
 	g_enemy.OnDraw();
 
 	g_OpenGL.EndRender(g_hDC);

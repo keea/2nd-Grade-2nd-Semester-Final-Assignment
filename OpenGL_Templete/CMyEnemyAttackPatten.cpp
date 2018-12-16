@@ -4,6 +4,7 @@
 
 CMyEnemyAttackPatten::CMyEnemyAttackPatten()
 {
+	m_currentType = START;
 }
 
 

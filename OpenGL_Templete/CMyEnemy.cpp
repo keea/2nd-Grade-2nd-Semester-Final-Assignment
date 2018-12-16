@@ -1,5 +1,5 @@
 #include "CMyEnemy.h"
-
+#include "CMyEnemyAttack1.h"
 
 
 CMyEnemy::CMyEnemy()
@@ -16,6 +16,9 @@ CMyEnemy::CMyEnemy()
 
 CMyEnemy::~CMyEnemy()
 {
+	
+	delete m_pAtkPatten[0];
+
 	delete m_pHpSprite;
 	m_pHpSprite = NULL;
 }
@@ -29,6 +32,13 @@ bool CMyEnemy::Create(char * filename)
 	m_pHpSprite = new dsTexture("hp_bar.png");
 	m_pHpSprite->LoadFromFilename("hp_bar.png");
 
+	CMyEnemyAttack1 * atk1 = new CMyEnemyAttack1();
+	atk1->Create();
+
+	m_attackCount = 1;
+
+	m_pAtkPatten[0] = atk1;
+
 	return m_pSprite->LoadFromFilename(filename);
 }
 
@@ -36,18 +46,54 @@ void CMyEnemy::OnDraw()
 {
 	m_pSprite->Draw(m_rect.left, m_rect.top, 0, 0, 512, 150, 0);
 	m_pHpSprite->Draw(0, 0, 0, 0, m_hp, 15, 0);
+	if(m_isAttackUpdate)
+		m_pAtkPatten[m_attackNum]->OnDraw();
 }
 
 void CMyEnemy::OnUpdate(DWORD tick)
 {
-	//적 공격 모션 추가하기.
-	/// 1. 세로 방향에서 3초후 공격(왼쪽 공격후 오른쪽 공격)
 
+	if (m_beforeAttackStatus == END) {
+		m_isAttackUpdate = false;
+		if (m_BtwTimeGap >= 2000)
+			m_BtwTimeGap -= 500;
+
+		m_BtwTimeAttack = m_BtwTimeGap;
+		m_beforeAttackStatus = NOTHING;
+	}
+
+	if (m_beforeAttackStatus == NOTHING) {
+		if (m_BtwTimeAttack <= 0) {
+			m_attackNum = rand() % m_attackCount;
+			m_isAttackUpdate = true;
+			m_pAtkPatten[m_attackNum]->OnStart();
+		}
+		else {
+			m_BtwTimeAttack -= tick;
+		}
+	}
+
+	if(m_isAttackUpdate)
+		m_beforeAttackStatus = m_pAtkPatten[m_attackNum]->OnUpdate(tick);
 }
 
 void CMyEnemy::HaveDamage(int damage)
 {
 	m_hp -= damage;
+}
+
+bool CMyEnemy::IsCollision(RECT rect)
+{
+	return m_pAtkPatten[0]->IsCollision(rect);
+}
+
+void CMyEnemy::Init()
+{
+	m_BtwTimeAttack = 1000;
+	m_attackNum = 0;
+	m_BtwTimeGap = 3000;
+	m_beforeAttackStatus = NOTHING;
+	m_isAttackUpdate = false;
 }
 
 
