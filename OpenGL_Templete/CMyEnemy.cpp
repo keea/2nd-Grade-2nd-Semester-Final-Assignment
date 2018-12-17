@@ -31,6 +31,8 @@ bool CMyEnemy::Create(char * filename)
 	m_pSprite = new dsTexture(filename);
 	m_pHpSprite = new dsTexture("hp_bar.png");
 	m_pHpSprite->LoadFromFilename("hp_bar.png");
+	m_pLineSprite = new dsTexture("red_line.png");
+	m_pLineSprite->LoadFromFilename("red_line.png");
 
 	CMyEnemyAttack1 * atk1 = new CMyEnemyAttack1();
 	atk1->Create();
@@ -48,6 +50,8 @@ bool CMyEnemy::Create(char * filename)
 
 void CMyEnemy::OnDraw()
 {
+	m_pLineSprite->Draw(0, (m_rect.top + 150) - 20, 0);
+
 	m_pSprite->Draw(m_rect.left, m_rect.top, 0, 0, 512, 150, 0);
 	m_pHpSprite->Draw(0, 0, 0, 0, m_hp, 15, 0);
 	if(m_isAttackUpdate)
@@ -59,7 +63,7 @@ void CMyEnemy::OnUpdate(DWORD tick)
 
 	if (m_beforeAttackStatus == END) {
 		m_isAttackUpdate = false;
-		if (m_BtwTimeGap >= 2000)
+		if (m_BtwTimeGap >= 1000)
 			m_BtwTimeGap -= 500;
 
 		m_BtwTimeAttack = m_BtwTimeGap;
@@ -88,6 +92,9 @@ void CMyEnemy::HaveDamage(int damage)
 
 bool CMyEnemy::IsCollision(RECT rect)
 {
+	if (rect.top <= (m_rect.top + 150) - 20)
+		return true;
+
 	return m_pAtkPatten[m_currentAttack]->IsCollision(rect);
 }
 
@@ -99,6 +106,11 @@ void CMyEnemy::Init()
 	m_BtwTimeGap = 3000;
 	m_beforeAttackStatus = NOTHING;
 	m_isAttackUpdate = false;
+}
+
+bool CMyEnemy::IsHpZero()
+{
+	return m_hp <= 0;
 }
 
 

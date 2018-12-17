@@ -84,3 +84,13 @@ int CMyBullet::GetDamage(RECT rect)
 
 	return damage;
 }
+
+void CMyBullet::Init()
+{
+	for (int i = 0; i < m_bullets.size(); i++) {
+		CMyBulletObject * pBullet = m_bullets[i];
+		delete pBullet;
+	}
+
+	m_bullets.clear();
+}

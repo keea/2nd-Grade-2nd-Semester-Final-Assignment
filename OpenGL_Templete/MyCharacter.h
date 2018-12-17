@@ -8,6 +8,7 @@ enum MOVEDIR {
 	RIGHT = 1,
 	UP = 2,
 	DOWN = 3,
+	NONE,
 };
 
 
@@ -57,5 +58,8 @@ public:
 	float GetAngle() { return m_angle; }
 
 	void OnCollisionEnter();
+	bool IsHpZero();
+
+	void StopMove(MOVEDIR dir);
 };
 

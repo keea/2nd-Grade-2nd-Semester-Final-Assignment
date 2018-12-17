@@ -22,5 +22,6 @@ public:
 	void OnDraw(int x, int y);
 	void OnUpdate(DWORD tick);
 	int GetDamage(RECT rect);
+	void Init();
 };
 

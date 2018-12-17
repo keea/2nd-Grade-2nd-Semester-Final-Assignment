@@ -20,6 +20,7 @@ protected:
 	int						m_currentAttack;
 	CURRENT_TYPE			m_beforeAttackStatus;
 	bool					m_isAttackUpdate;
+	dsTexture				*m_pLineSprite;
 	
 	
 public:
@@ -34,5 +35,6 @@ public:
 	RECT GetEnemyRect() { return m_rect; }
 	bool IsCollision(RECT rect);
 	void Init();
+	bool IsHpZero();
 };
 
