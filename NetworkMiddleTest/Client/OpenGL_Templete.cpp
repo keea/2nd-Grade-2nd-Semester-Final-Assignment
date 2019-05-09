@@ -8,6 +8,7 @@
 #include "dsOpenALSoundManager.h"
 #include "CirQueue.h"
 #include "FighterPlane.h"
+#include "ControlObject.h"
 
 SOCKET g_hSocket;
 #define WM_SOCKET   WM_USER+1
@@ -17,7 +18,9 @@ CCirQueue g_Queue;
 CFrameOpenGL  g_OpenGL;
 HDC           g_hDC;
 
-CFighterPlane g_myAir("myAir");
+//CFighterPlane g_myAir("myAir");
+ControlObject g_control("img");
+GameObject * g_myAir;
 
 void OnIdle(float deltaTime);
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -99,7 +102,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	ShowWindow(hwnd, nCmdShow);
 	UpdateWindow(hwnd);
 
-	g_myAir.Create("./data/1942.png", 5, 323, 67, 49);
+	//g_myAir.Create("./data/1942.png", 5, 323, 67, 49);
+	g_control.Create("./data/1942.png");
+	g_myAir = g_control.CreateObject("myAir", 5, 323, 67, 49);
 
 	dsOpenALSoundManager *pSoundManger = GetOpenALSoundManager();
 	dsSound *pSound = pSoundManger->LoadSound("back.wav", true);
@@ -295,19 +300,21 @@ void OnIdle(float deltaTime)
 	}
 	if (key[VK_ADD] & 0x80)
 	{
-		g_myAir.ChangeSpeed(10.0f);
+		//g_myAir.ChangeSpeed(10.0f);
 	}
 	if (key[VK_SUBTRACT] & 0x80)
 	{
-		g_myAir.ChangeSpeed(-10.0f);
+		//g_myAir.ChangeSpeed(-10.0f);
 	}
-	g_myAir.Move(xPos, yPos, deltaTime);
+	//g_myAir.Move(xPos, yPos, deltaTime);
 
 
 	g_OpenGL.BeginRender();
 
+	g_myAir->SetPosition(200, 200);
 	//g_myAir.Draw(200, 200, 0);
-	g_myAir.DrawFighter(0);
+	//g_myAir.DrawFighter(0);
+	g_control.DrawImage(deltaTime);
 
 	g_OpenGL.EndRender(g_hDC);
 }

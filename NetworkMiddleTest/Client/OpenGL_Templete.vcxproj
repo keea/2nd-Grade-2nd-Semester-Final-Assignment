@@ -145,8 +145,9 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CFighterSubPlane.h" />
+    <ClInclude Include="AirObject.h" />
     <ClInclude Include="CirQueue.h" />
+    <ClInclude Include="ControlObject.h" />
     <ClInclude Include="CWaves.h" />
     <ClInclude Include="dsDef.h" />
     <ClInclude Include="dsLua.h" />
@@ -160,14 +161,16 @@
     <ClInclude Include="dsVector3.h" />
     <ClInclude Include="FighterPlane.h" />
     <ClInclude Include="FrameOpenGL.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="glf.h" />
     <ClInclude Include="packet.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="global.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CFighterSubPlane.cpp" />
+    <ClCompile Include="AirObject.cpp" />
     <ClCompile Include="CirQueue.cpp" />
+    <ClCompile Include="ControlObject.cpp" />
     <ClCompile Include="CWaves.cpp" />
     <ClCompile Include="dsLua.cpp" />
     <ClCompile Include="dsManager.cpp" />
@@ -180,6 +183,7 @@
     <ClCompile Include="dsVector3.cpp" />
     <ClCompile Include="FighterPlane.cpp" />
     <ClCompile Include="FrameOpenGL.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="glf.c" />
     <ClCompile Include="OpenGL_Templete.cpp" />
   </ItemGroup>

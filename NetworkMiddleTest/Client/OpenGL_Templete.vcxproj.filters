@@ -72,7 +72,13 @@
     <ClInclude Include="FighterPlane.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="CFighterSubPlane.h">
+    <ClInclude Include="GameObject.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ControlObject.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="AirObject.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
@@ -122,7 +128,13 @@
     <ClCompile Include="FighterPlane.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="CFighterSubPlane.cpp">
+    <ClCompile Include="GameObject.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ControlObject.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="AirObject.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
