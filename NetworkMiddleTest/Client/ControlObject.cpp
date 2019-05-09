@@ -39,10 +39,23 @@ BOOL ControlObject::Create(std::string imagename)
 	return TRUE;
 }
 
-GameObject * ControlObject::CreateObject(std::string name, int srcX, int srcY, int srcW, int srcH)
+GameObject * ControlObject::CreateObject(std::string name, int srcX, int srcY, int srcW, int srcH, TYPE type)
 {
-	GameObject * gameObject = new GameObject(name, srcX, srcY, srcW, srcH);
-	objects[name] = gameObject;
+	GameObject * gameObject;
+	switch (type)
+	{
+	case NONE:
+		gameObject = new GameObject(name, srcX, srcY, srcW, srcH, type);
+		objects[name] = gameObject;
+		break;
+	case AIR:
+		gameObject = new AirObject(name, srcX, srcY, srcW, srcH, type);
+		objects[name] = gameObject;
+		break;
+	default:
+		break;
+	}
+	
 
 	return gameObject;
 }

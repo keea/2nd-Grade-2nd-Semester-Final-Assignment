@@ -9,6 +9,7 @@
 #include "CirQueue.h"
 #include "FighterPlane.h"
 #include "ControlObject.h"
+#include "AirObject.h"
 
 SOCKET g_hSocket;
 #define WM_SOCKET   WM_USER+1
@@ -20,7 +21,7 @@ HDC           g_hDC;
 
 //CFighterPlane g_myAir("myAir");
 ControlObject g_control("img");
-GameObject * g_myAir;
+AirObject * g_myAir;
 
 void OnIdle(float deltaTime);
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -104,7 +105,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 	//g_myAir.Create("./data/1942.png", 5, 323, 67, 49);
 	g_control.Create("./data/1942.png");
-	g_myAir = g_control.CreateObject("myAir", 5, 323, 67, 49);
+	g_myAir = (AirObject *)g_control.CreateObject("myAir", 5, 323, 67, 49, TYPE::AIR);
+	g_myAir->SetPosition(250, 350);
 
 	dsOpenALSoundManager *pSoundManger = GetOpenALSoundManager();
 	dsSound *pSound = pSoundManger->LoadSound("back.wav", true);
@@ -300,18 +302,20 @@ void OnIdle(float deltaTime)
 	}
 	if (key[VK_ADD] & 0x80)
 	{
+		g_myAir->ChangeSpeed(10.0f);
 		//g_myAir.ChangeSpeed(10.0f);
 	}
 	if (key[VK_SUBTRACT] & 0x80)
 	{
 		//g_myAir.ChangeSpeed(-10.0f);
+		g_myAir->ChangeSpeed(-10.0f);
 	}
-	//g_myAir.Move(xPos, yPos, deltaTime);
+	g_myAir->Move(xPos, yPos, deltaTime);
 
 
 	g_OpenGL.BeginRender();
 
-	g_myAir->SetPosition(200, 200);
+	//g_myAir->SetPosition(200, 200);
 	//g_myAir.Draw(200, 200, 0);
 	//g_myAir.DrawFighter(0);
 	g_control.DrawImage(deltaTime);
