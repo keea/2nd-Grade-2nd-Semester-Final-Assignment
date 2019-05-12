@@ -8,6 +8,9 @@
 #include "dsOpenALSoundManager.h"
 #include "CirQueue.h"
 #include "FighterPlane.h"
+#include "ControlObject.h"
+#include "AirObject.h"
+
 
 SOCKET g_hSocket;
 #define WM_SOCKET   WM_USER+1
@@ -17,12 +20,22 @@ CCirQueue g_Queue;
 CFrameOpenGL  g_OpenGL;
 HDC           g_hDC;
 
-CFighterPlane g_myAir("myAir");
+//CFighterPlane g_myAir("myAir");
+ControlObject g_control("img");
+AirObject * g_myAir;
+AirObject * g_enemyAir;
 
 void OnIdle(float deltaTime);
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 SOCKADDR_IN g_toHost;
+GAMESTATE g_state;
+
+#define DEFAULT_POS_X 250
+#define DEFAULT_POS_Y 350
+
+void Game(float deltaTime);
+
 // 데이터 보내기
 int Send(SOCKET sock, char *buf, int size)
 {
@@ -99,14 +112,32 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	ShowWindow(hwnd, nCmdShow);
 	UpdateWindow(hwnd);
 
-	g_myAir.Create("./data/1942.png", 5, 323, 67, 49);
+	//g_myAir.Create("./data/1942.png", 5, 323, 67, 49);
+	g_control.Create("./data/1942.png");
+	g_myAir = (AirObject *)g_control.CreateObject("myAir", 5, 323, 67, 49, TYPE::AIR);
+	g_myAir->SetPosition(DEFAULT_POS_X, DEFAULT_POS_Y);
 
-	dsOpenALSoundManager *pSoundManger = GetOpenALSoundManager();
+	//보낼 데이터 정의
+	char buf[128];
+	AIR_PACKET *pHeader = (AIR_PACKET *)buf;
+	pHeader->PktID = PKT_JOIN;
+	pHeader->PktSize = sizeof(AIR_PACKET);
+	float x = 0;
+	float y = 0;
+	g_state = IDEL;
+
+	g_myAir->GetPosition(&x, &y);
+	pHeader->PosX = x;
+	pHeader->state = g_state;
+	
+	Send(g_hSocket, buf, pHeader->PktSize);
+
+	/*dsOpenALSoundManager *pSoundManger = GetOpenALSoundManager();
 	dsSound *pSound = pSoundManger->LoadSound("back.wav", true);
 	if (pSound)
 	{
 		pSound->Play();
-	}	
+	}*/	
 
 
 	MSG msg;
@@ -175,9 +206,47 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				switch (pHeader->PktID)
 				{
 					//case : break;
-				case PKT_JOIN_P1:
+				case PKT_JOIN:
 				{
 					MessageBox(hWnd, "참가했다.", "JOIN P1", MB_OK);
+					AIR_PACKET * packet = (AIR_PACKET *)buf;
+					g_state = READY;
+
+					g_enemyAir = (AirObject *)g_control.CreateObject("enemyAir", 5, 323, 67, 49, TYPE::AIR);
+					g_enemyAir->SetPosition(packet->PosX, 10);
+
+					if (packet->state == IDEL) { //패킷의 게임 상태가 레디가 아닌 경우
+						packet->PktID = PKT_JOIN;
+						packet->PktSize = sizeof(AIR_PACKET);
+						float x = 0;
+						float y = 0;
+						g_myAir->GetPosition(&x, &y);
+						packet->PosX = x;
+						packet->state = g_state;
+						Send(g_hSocket, buf, packet->PktSize);
+					}
+					else {
+						g_state = GAME;
+						PACKETHEADER * packet = (PACKETHEADER *)buf;
+						packet->PktID = PKT_START;
+						packet->PktSize = sizeof(PACKETHEADER);
+						packet->state = g_state;
+						Send(g_hSocket, buf, packet->PktSize);
+					}
+					
+				}
+				break;
+
+				case PKT_START:
+				{
+					g_state = GAME;
+				}
+				break;
+
+				case PKT_GAME: 
+				{
+					AIR_PACKET * packet = (AIR_PACKET *)buf;
+					g_enemyAir->SetPosition(packet->PosX, 10);
 				}
 					break;
 				}
@@ -245,14 +314,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		SetWindowText(hWnd, "Server!!");
 
-		//보낼 데이터 정의
-		char buf[128];
-		PACKETHEADER *pHeader = (PACKETHEADER *)buf;
-		pHeader->PktID = PKT_JOIN_P2;
-		pHeader->PktSize = sizeof(PACKETHEADER);
-
-		Send(g_hSocket, buf, pHeader->PktSize);
-
 	
 		g_hDC = GetDC(hWnd);
 		g_OpenGL.Create(g_hDC);
@@ -276,16 +337,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-
-void OnIdle(float deltaTime)
+void Game(float deltaTime)
 {
-	DWORD	tickCount;
-
 	BYTE key[256];
 	::GetKeyboardState(key);
 
 	float xPos = 0.0f, yPos = 0.0f;
-	
+
 	if (key[VK_LEFT] & 0x80)
 	{
 		xPos = -1.0f;
@@ -296,19 +354,51 @@ void OnIdle(float deltaTime)
 	}
 	if (key[VK_ADD] & 0x80)
 	{
-		g_myAir.ChangeSpeed(10.0f);
+		g_myAir->ChangeSpeed(10.0f);
 	}
 	if (key[VK_SUBTRACT] & 0x80)
 	{
-		g_myAir.ChangeSpeed(-10.0f);
+		g_myAir->ChangeSpeed(-10.0f);
 	}
-	g_myAir.Move(xPos, yPos, deltaTime);
+	g_myAir->Move(xPos, yPos, deltaTime);
 
+	if (xPos != 0.0f) {
+		char buf[1024];
+		AIR_PACKET *pHeader = (AIR_PACKET *)buf;
+		pHeader->PktID = PKT_GAME;
+		pHeader->PktSize = sizeof(AIR_PACKET);
+		float x = 0;
+		float y = 0;
+		g_myAir->GetPosition(&x, &y);
+		pHeader->PosX = x;
+		Send(g_hSocket, buf, pHeader->PktSize);
+	}
+}
+
+
+void OnIdle(float deltaTime)
+{
+	DWORD	tickCount;
+
+	switch (g_state)
+	{
+	case IDEL:
+		break;
+	case READY:
+		break;
+	case GAME:
+		Game(deltaTime);
+		break;
+	case RESULT:
+		break;
+	default:
+		break;
+	}
 
 	g_OpenGL.BeginRender();
 
 	//g_myAir.Draw(200, 200, 0);
-	g_myAir.DrawFighter(0);
+	g_control.DrawImage(deltaTime);
 
 	g_OpenGL.EndRender(g_hDC);
 }

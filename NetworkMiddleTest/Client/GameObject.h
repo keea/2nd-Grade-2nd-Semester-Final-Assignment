@@ -7,6 +7,7 @@ enum TYPE
 {
 	NONE,
 	AIR, //ºñÇà±â
+	BULLET, //ÃÑ¾Ë
 };
 
 class GameObject
@@ -15,17 +16,18 @@ public:
 	GameObject();
 	GameObject(std::string name, int srcX, int srcY,
 		int srcW, int srcH, TYPE type);
-	~GameObject();
+	virtual ~GameObject();
 
-	void GetPosition(float &x, float &y);
+	void GetPosition(float *x, float *y);
 	void SetPosition(float x, float y);
-	void Draw(dsTexture * pTexture, unsigned int tick);
+	virtual void Draw(dsTexture * pTexture, unsigned int tick);
 private:
-	std::string name;
-	RECT m_rcImage;
+	
 protected:
 	float m_xPos;
 	float m_yPos;
 	TYPE m_type = NONE;
+	std::string name;
+	RECT m_rcImage;
 };
 
