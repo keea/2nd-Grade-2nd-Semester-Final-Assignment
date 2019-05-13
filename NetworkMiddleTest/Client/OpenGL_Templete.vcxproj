@@ -148,6 +148,7 @@
     <ClInclude Include="AirObject.h" />
     <ClInclude Include="BulletObject.h" />
     <ClInclude Include="CirQueue.h" />
+    <ClInclude Include="CMyMath.h" />
     <ClInclude Include="ControlObject.h" />
     <ClInclude Include="CWaves.h" />
     <ClInclude Include="dsDef.h" />
@@ -172,6 +173,7 @@
     <ClCompile Include="AirObject.cpp" />
     <ClCompile Include="BulletObject.cpp" />
     <ClCompile Include="CirQueue.cpp" />
+    <ClCompile Include="CMyMath.cpp" />
     <ClCompile Include="ControlObject.cpp" />
     <ClCompile Include="CWaves.cpp" />
     <ClCompile Include="dsLua.cpp" />

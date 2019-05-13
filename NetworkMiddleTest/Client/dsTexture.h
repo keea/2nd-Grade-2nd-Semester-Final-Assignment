@@ -32,6 +32,8 @@ public:
 	void Draw(int srcX, int srcY, int srcWidth, int srcHeight, unsigned int tick);
 	void Draw(float x, float y, unsigned int tick);
 	void Draw(dsDrawOP &DrawOP);
+
+	void DrawRotation(int srcX, int srcY, int srcWidth, int srcHeight, float angle);
 	
 protected:	
 	virtual void Update(float time) {}

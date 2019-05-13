@@ -316,4 +316,39 @@ void dsTexture::Draw(dsDrawOP &DrawOP)
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);	
 }
 
+void dsTexture::DrawRotation(int srcX, int srcY, int srcWidth, int srcHeight, float angle)
+{
+	float x = (float)srcX / (float)m_width;
+	float y = (float)srcY / (float)m_height;
+	float width = (float)srcWidth / (float)m_width;
+	float height = (float)srcHeight / (float)m_height;
+
+	TexRect[0] = m_xPos;
+	TexRect[1] = m_yPos;
+	TexRect[2] = m_xPos + srcWidth;
+	TexRect[3] = m_yPos;
+	TexRect[4] = m_xPos;
+	TexRect[5] = m_yPos + srcHeight;
+	TexRect[6] = m_xPos + srcWidth;
+	TexRect[7] = m_yPos + srcHeight;
+
+
+	GLfloat TexCoords[] = { x, y, x + width, y, x, y + height, x + width, y + height };
+
+
+	glBindTexture(GL_TEXTURE_2D, m_texID);
+
+	glVertexPointer(2, GL_FLOAT, 0, TexRect);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, 0, TexCoords);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	glPushMatrix();
+
+	glTranslatef(m_xPos, m_yPos, 0.0f);
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	glPopMatrix();
+}
 

@@ -23,16 +23,22 @@ void AirObject::Draw(dsTexture * pTexture, unsigned int tick)
 {
 	m_updateTick += tick;
 	if (m_isDie) {
-		if (m_updateTick > 15.0f)
-			m_aniIndex = (m_aniIndex + 1) % 9;
+		if (m_updateTick > 15.0f) {
+			m_aniIndex = (m_aniIndex + 1);
+			if (m_aniIndex >= 9) {
+				m_aniIndex = 0; 
+				m_isDie = false;
+				m_isEnd = true;
+			}
+		}	
 		m_updateTick = 0.0f;
 	}
 
 	pTexture->SetPosition(m_xPos, m_yPos);
-	pTexture->Draw(m_dieAni[m_aniIndex].left,
+	pTexture->DrawRotation(m_dieAni[m_aniIndex].left,
 		m_dieAni[m_aniIndex].top,
 		m_dieAni[m_aniIndex].right,
-		m_dieAni[m_aniIndex].bottom, tick);
+		m_dieAni[m_aniIndex].bottom, m_angle);
 }
 
 void AirObject::SetDie()
@@ -50,6 +56,29 @@ RECT AirObject::GetRect()
 	RECT rc;
 	SetRect(&rc, m_xPos, m_yPos, m_xPos + m_dieAni[0].right, m_yPos + m_dieAni[0].bottom);
 	return rc;
+}
+
+bool AirObject::GetIsEnd()
+{
+	if (m_isEnd == true) {
+		m_isEnd = false;
+		return true;
+	}
+	
+	return false;
+}
+
+Vector2 AirObject::GetAttackDir(POINT targetPos)
+{
+	//위로 향하는 기본 벡터
+	Vector2 playerDirVec = { 0.0f, -1.0f };
+
+	//점 - 점 = 벡터
+	Vector2 vecTargetDirection = { targetPos.x - m_xPos,
+		targetPos.y - m_yPos };
+
+	//각도를 구함.
+	return vecTargetDirection;
 }
 
 AirObject::~AirObject()

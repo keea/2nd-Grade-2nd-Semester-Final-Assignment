@@ -27,7 +27,7 @@ AirObject * g_enemyAir;
 float g_createBulletPosX;
 bool g_isBulletCreate = false;
 
-void OnIdle(float deltaTime);
+void OnIdle(float deltaTime, HWND hwnd);
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 SOCKADDR_IN g_toHost;
@@ -38,9 +38,12 @@ float g_bulletCollTime = 0;
 
 #define DEFAULT_POS_X 250
 #define DEFAULT_POS_Y 350
-#define COOLTIME	3000
+#define COOLTIME	300
 
-void Game(float deltaTime);
+void Game(HWND hwnd, float deltaTime);
+void Die(float deltaTime, HWND hwnd);
+void Init();
+void GetMousePosition(HWND hwnd, POINT * pos);
 
 // 데이터 보내기
 int Send(SOCKET sock, char *buf, int size)
@@ -139,7 +142,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	pHeader->PosX = x;
 	pHeader->state = g_state;
 
-	
 	Send(g_hSocket, buf, pHeader->PktSize);
 
 	/*dsOpenALSoundManager *pSoundManger = GetOpenALSoundManager();
@@ -167,7 +169,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 			DWORD cur_tick = GetTickCount();
 			float deltaTime = (float)(cur_tick - tick);
 			g_bulletCollTime -= deltaTime;
-			OnIdle(deltaTime);
+			OnIdle(deltaTime, hwnd);
 
 			tick = cur_tick;
 		}
@@ -225,7 +227,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					GAMEDATA_MOVE * packet = (GAMEDATA_MOVE *)buf;
 
 					g_enemyAir = (AirObject *)g_control.CreateObject("enemyAir", 5, 323, 67, 49, TYPE::AIR);
-					g_enemyAir->SetPosition(packet->PosX, 10);
+					g_enemyAir->SetPosition(packet->PosX, packet->PosY);
 
 					if (packet->state == IDEL) { //패킷의 게임 상태가 레디가 아닌 경우
 						packet->PktID = PKT_JOIN;
@@ -234,6 +236,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						float y = 0;
 						g_myAir->GetPosition(&x, &y);
 						packet->PosX = x;
+						packet->PosY = y;
 						packet->state = g_state;
 						Send(g_hSocket, buf, packet->PktSize);
 					}
@@ -258,19 +261,52 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				case PKT_GAME_MOVE: 
 				{
 					GAMEDATA_MOVE * packet = (GAMEDATA_MOVE *)buf;
-					g_enemyAir->SetPosition(packet->PosX, 10);
+					g_enemyAir->SetPosition(packet->PosX, packet->PosY);
 				}
 				break;
 				case PKT_GAME_FIRE:
 				{
-					GAMEDATA_BULLET * packet = (GAMEDATA_BULLET *)buf;
-					string name = "bullet" + g_createBullet;
-					BulletObject * obj = (BulletObject *)g_control.CreateObject(name, 75, 90, 4, 4, TYPE::BULLET);
-					obj->SetPosition(packet->createBulletPosX, 10); // 이상함??
-					obj->SetIsMyBullet(false);
-					bullets.push_back(obj);
-					g_createBullet++;
+					if (g_state == GAME) {
+						GAMEDATA_BULLET * packet = (GAMEDATA_BULLET *)buf;
+						string name = "bullet" + g_createBullet;
+						BulletObject * obj = (BulletObject *)g_control.CreateObject(name, 75, 90, 4, 4, TYPE::BULLET);
+						obj->SetPosition(packet->createBulletPosX, 10);
+						obj->SetIsMyBullet(false);
+						bullets.push_back(obj);
+						g_createBullet++;
+					}
+				}
+					break;
 
+				case PKT_GAME_OVER:
+				{
+					if (g_state == DIE) { //내가 게임 오버를 알리고 상대가 응답해주는 경우
+						//게임 오버 안내 띄우기.
+						if (IDYES == MessageBox(NULL, TEXT("패배하셨습니다. 계속 진행하시겠습니까?"), TEXT("패배"), MB_YESNO | MB_ICONERROR)) {
+							Init();
+							//보낼 데이터 정의
+							char buf[128];
+							GAMEDATA_MOVE *pHeader = (GAMEDATA_MOVE *)buf;
+							pHeader->PktID = PKT_JOIN;
+							pHeader->PktSize = sizeof(GAMEDATA_MOVE);
+							float x = 0;
+							float y = 0;
+							g_state = IDEL;
+
+							g_myAir->GetPosition(&x, &y);
+							pHeader->PosX = x;
+							pHeader->state = g_state;
+							Send(g_hSocket, buf, pHeader->PktSize);
+						}
+						else {
+							Init();
+							SendMessage(hWnd, WM_CLOSE, 0, 0); //윈도우 종료.
+						}
+					}
+					else { // 상대가 죽었다는 것을 받는 경우.
+						g_state = DIE; //die로 변경하여, 움직이게 못함.
+						g_enemyAir->SetDie(); //그리고 죽음 처리(?)
+					}
 				}
 					break;
 				}
@@ -361,9 +397,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
-void OnIdle(float deltaTime)
+void OnIdle(float deltaTime, HWND hwnd)
 {
 	DWORD	tickCount;
+	Game(hwnd, deltaTime);
 
 	switch (g_state)
 	{
@@ -372,9 +409,10 @@ void OnIdle(float deltaTime)
 	case READY:
 		break;
 	case GAME:
-		Game(deltaTime);
+		
 		break;
-	case RESULT:
+	case DIE:
+		Die(deltaTime, hwnd);
 		break;
 	default:
 		break;
@@ -386,35 +424,105 @@ void OnIdle(float deltaTime)
 
 }
 
-void Game(float deltaTime) {
+void Die(float deltaTime, HWND hwnd) {
+	if (g_myAir->GetIsEnd()) { //내가 죽었을 경우.
+		//게임 오버 데이터 보내기.
+		char buf[128];
+		PACKETHEADER *pHeader = (PACKETHEADER *)buf;
+		pHeader->PktID = PKT_GAME_OVER;
+		pHeader->PktSize = sizeof(PACKETHEADER);
+		pHeader->state = g_state; //죽음었다는 것을 보냄.
+		Send(g_hSocket, buf, pHeader->PktSize);
+	}
+
+	if (g_enemyAir->GetIsEnd()) {
+		//점수 증가.
+
+		//승리 문구를 띄운다.
+		MessageBox(hwnd, "승리하셨습니다.", "승리", MB_OK);
+
+		char buf[128];
+		PACKETHEADER *pHeader = (PACKETHEADER *)buf;
+		pHeader->PktID = PKT_GAME_OVER;
+		pHeader->PktSize = sizeof(PACKETHEADER);
+		pHeader->state = g_state; //죽음었다는 것을 보냄.
+		Send(g_hSocket, buf, pHeader->PktSize);
+
+		//초기화 하기 : 총알, 게임 상태값. 오브젝트 상태값.
+		Init(); 
+	}
+}
+
+void Init()
+{
+	g_myAir->SetPosition(DEFAULT_POS_X, DEFAULT_POS_Y);
+	g_state = IDEL;
+	g_control.DeleteObject("enemyAir"); //적 오브젝트 제거
+
+
+	while (!bullets.empty())
+	{
+		string name = bullets.back()->GetName();
+		g_control.DeleteObject(name);
+		bullets.pop_back();
+	}
+
+	g_createBullet = 0;
+
+	//if (!bullets.empty()) {
+	//	vector<BulletObject*>::iterator iter = bullets.begin();
+	//	for (int i = 0; i < bullets.size();) {
+	//		string name = bullets[i]->GetName();
+	//		bullets.erase(iter + i);
+	//		g_control.DeleteObject(name);
+	//	}
+	//	//bullets.clear();
+	//	g_createBullet = 0;
+	//}
+}
+
+void Game(HWND hwnd,float deltaTime) {
 	BYTE key[256];
 	::GetKeyboardState(key);
+
+	//캐릭터 회전.
+	POINT pos;
+	GetMousePosition(hwnd, &pos);
+	
 
 	if (!bullets.empty()) {
 		vector<BulletObject*>::iterator iter = bullets.begin();
 		float x, y;
-		for (int i = 0; i < bullets.size(); i++) {
-			bullets[i]->GetPosition(&x, &y);
+		bullets[0]->SetVecDir(g_myAir->GetAttackDir(pos));
 
-			RECT rc;
-			string str = "총알 y값 : "+to_string(bullets[i]->GetRect().top) + " 총알 x값 : " + to_string(bullets[i]->GetRect().left)+" 내 비행기 x값 : "+ to_string(g_myAir->GetRect().right);
-			//250 ,  350
-			str += "\n";
-
-			const char * ch = str.c_str();
+		//for (int i = 0; i < bullets.size();) {
 			
-			OutputDebugString(ch);
-			if (IntersectRect(&rc, &(bullets[i]->GetRect()), &(g_myAir->GetRect()))) {
-				g_myAir->SetDie();
-			}
+			//bullets[i]->GetPosition(&x, &y);
 
-			if (y <= 0 || y >= 768) //화면 밖을 나가는 경우
-			{
-				string name = bullets[i]->GetName();
-				bullets.erase(iter + i);
-				g_control.DeleteObject(name);
-			}
-		}
+			//RECT rc;
+			//string str = "총알 y값 : "+to_string(bullets[i]->GetRect().top) + " 총알 x값 : " + to_string(bullets[i]->GetRect().left)+" 내 비행기 x값 : "+ to_string(g_myAir->GetRect().right);
+			////250 ,  350
+			//str += "\n";
+
+			//const char * ch = str.c_str();
+			//
+			//OutputDebugString(ch);
+			//if (IntersectRect(&rc, &(bullets[i]->GetRect()), &(g_myAir->GetRect()))) {
+			//	//자신의 캐릭터가 총알에 맞은 경우
+			//	g_myAir->SetDie();
+			//	g_state = DIE;
+			//}
+
+			//if (y <= 0 || y >= 768) //화면 밖을 나가는 경우
+			//{
+			//	string name = bullets[i]->GetName();
+			//	bullets.erase(iter + i);
+			//	g_control.DeleteObject(name);
+			//}
+			//else {
+			//	i++;
+			//}
+		//}
 	}
 
 	float xPos = 0.0f, yPos = 0.0f;
@@ -427,6 +535,15 @@ void Game(float deltaTime) {
 	{
 		xPos = 1.0f;
 	}
+
+	if (key[VK_UP] & 0x80) {
+		yPos = -1.0f;
+	}
+
+	if (key[VK_DOWN] & 0x80) {
+		yPos = 1.0f;
+	}
+
 	if (key[VK_ADD] & 0x80)
 	{
 		g_myAir->ChangeSpeed(10.0f);
@@ -443,7 +560,7 @@ void Game(float deltaTime) {
 			BulletObject * obj = (BulletObject *)g_control.CreateObject(name, 75, 90, 4, 4, TYPE::BULLET);
 			float x, y;
 			g_myAir->GetPosition(&x, &y);
-			obj->SetPosition(x + (g_myAir->GetWidth() / 4), y); // 이상함??
+			obj->SetPosition(x + (g_myAir->GetWidth() / 4), y-10); // 이상함??
 			obj->SetIsMyBullet(true);
 			g_createBulletPosX = x + (g_myAir->GetWidth() / 4);
 
@@ -481,9 +598,18 @@ void Game(float deltaTime) {
 		float y = 0;
 		g_myAir->GetPosition(&x, &y);
 		pHeader->PosX = x;
+		pHeader->PosY = y;
 		Send(g_hSocket, buf, pHeader->PktSize);
 	}
 	
+	
+}
+
+void GetMousePosition(HWND hwnd, POINT * pos)
+{
+	//마우스 정보 가져오기
+	GetCursorPos(pos);
+	ScreenToClient(hwnd, pos); //마우스좌표를 클라이언트 좌표로 변경.
 
 }
 

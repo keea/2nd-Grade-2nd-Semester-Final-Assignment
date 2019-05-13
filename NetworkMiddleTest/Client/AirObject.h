@@ -1,5 +1,6 @@
 #pragma once
 #include "GameObject.h"
+#include "CMyMath.h"
 class AirObject : public GameObject
 {
 public:
@@ -19,6 +20,7 @@ public:
 		m_updateTick = 0;
 		m_aniIndex = 0;
 		m_isDie = false;
+		m_isEnd = false;
 	};
 
 	void Move(float x, float y, float deltaTime);
@@ -33,6 +35,10 @@ public:
 
 	RECT GetRect();
 
+	bool GetIsEnd();
+
+	Vector2  GetAttackDir(POINT targetPos);
+
 	~AirObject();
 
 private:
@@ -41,5 +47,7 @@ private:
 	float		 m_updateTick;
 	int			 m_aniIndex;
 	bool		 m_isDie;
+	bool		 m_isEnd;
+	float		 m_angle;
 };
 
