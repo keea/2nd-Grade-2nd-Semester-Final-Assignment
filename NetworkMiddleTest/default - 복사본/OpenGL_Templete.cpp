@@ -38,7 +38,7 @@ float g_bulletCollTime = 0;
 
 #define DEFAULT_POS_X 250
 #define DEFAULT_POS_Y 350
-#define COOLTIME	  300
+#define COOLTIME	  500
 
 void Game(float deltaTime);
 void Die(float deltaTime, HWND hwnd);
@@ -487,11 +487,21 @@ void Game(float deltaTime) {
 		float x, y;
 
 		for (int i = 0; i < bullets.size(); i++) {
+			if (i >= bullets.size())
+				break;
+
+
 			bullets[i]->GetPosition(&x, &y);
 
+			if (x < 0 || y < 0)
+				continue;
+
 			RECT rc;
-			string str = "총알 y값 : "+to_string(bullets[i]->GetRect().top) + " 총알 x값 : " + to_string(bullets[i]->GetRect().left)+" 내 비행기 x값 : "+ to_string(g_myAir->GetRect().right);
-			//250 ,  350
+			string str = "총알 y값 : " + to_string(bullets[i]->GetRect().top) +
+				" 총알 x값 : " + to_string(bullets[i]->GetRect().left) +
+				" 내 비행기 x값 : " + to_string(g_myAir->GetRect().right) +
+				" 전채 총알 갯수 : " + to_string(bullets.size()) +
+				" 인덱스 : " + to_string(i);
 			str += "\n";
 
 			const char * ch = str.c_str();
@@ -506,7 +516,7 @@ void Game(float deltaTime) {
 			if (y <= 0 || y >= 768) //화면 밖을 나가는 경우
 			{
 				string name = bullets[i]->GetName();
-				bullets.erase(iter + i);
+ 				bullets.erase(iter + i);
 				g_control.DeleteObject(name);
 				break;
 			}

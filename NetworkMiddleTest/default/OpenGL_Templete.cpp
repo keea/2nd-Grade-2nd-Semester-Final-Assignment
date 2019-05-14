@@ -38,7 +38,7 @@ float g_bulletCollTime = 0;
 
 #define DEFAULT_POS_X 250
 #define DEFAULT_POS_Y 350
-#define COOLTIME	  300
+#define COOLTIME	  500
 
 void Game(float deltaTime);
 void Die(float deltaTime, HWND hwnd);
@@ -486,10 +486,22 @@ void Game(float deltaTime) {
 		vector<BulletObject*>::iterator iter = bullets.begin();
 		float x, y;
 		for (int i = 0; i < bullets.size(); i++) {
+			if (i >= bullets.size())
+				break;
+
 			bullets[i]->GetPosition(&x, &y);
 
+			if (x < 0 || y < 0)
+				continue;
+
+
 			RECT rc;
-			string str = "총알 y값 : "+to_string(bullets[i]->GetRect().top) + " 총알 x값 : " + to_string(bullets[i]->GetRect().left)+" 내 비행기 x값 : "+ to_string(g_myAir->GetRect().right);
+			string str = "총알 y값 : " + to_string(bullets[i]->GetRect().top) +
+				" 총알 x값 : " + to_string(bullets[i]->GetRect().left) +
+				" 내 비행기 x값 : " + to_string(g_myAir->GetRect().right) +
+				" 전채 총알 갯수 : " + to_string(bullets.size()) +
+				" 인덱스 : " + to_string(i);
+
 			//250 ,  350
 			str += "\n";
 
@@ -505,8 +517,9 @@ void Game(float deltaTime) {
 			if (y <= 0 || y >= 768) //화면 밖을 나가는 경우
 			{
 				string name = bullets[i]->GetName();
+ 				g_control.DeleteObject(name);
 				bullets.erase(iter + i);
-				g_control.DeleteObject(name);
+				break;
 			}
 		}
 	}
@@ -537,7 +550,7 @@ void Game(float deltaTime) {
 			BulletObject * obj = (BulletObject *)g_control.CreateObject(name, 75, 90, 4, 4, TYPE::BULLET);
 			float x, y;
 			g_myAir->GetPosition(&x, &y);
-			obj->SetPosition(x + (g_myAir->GetWidth() / 4), y-10); // 이상함??
+			obj->SetPosition(x + (g_myAir->GetWidth() / 4), y-10);
 			obj->SetIsMyBullet(true);
 			g_createBulletPosX = x + (g_myAir->GetWidth() / 4);
 

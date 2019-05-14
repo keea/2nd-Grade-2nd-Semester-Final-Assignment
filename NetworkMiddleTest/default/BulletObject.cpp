@@ -19,7 +19,7 @@ void BulletObject::SetIsMyBullet(bool isMy)
 
 std::string BulletObject::GetName()
 {
-	return name;
+ 	return name;
 }
 
 RECT BulletObject::GetRect()
