@@ -19,19 +19,22 @@ public class GameManager : MonoBehaviour
 
     public List<Command> cmdList = new List<Command>();
 
+    public GameObject backgroundLiner;
+
     // Start is called before the first frame update
     void Start()
     {
         pos = new Vector2[MAX_CREATE_POSTION];
-        pos[0] = new Vector2(-6.88f, -3.27f);
-        pos[1] = new Vector2(-7.25f, -3.07f);
-        pos[2] = new Vector2(-6.81f, 3.47f);
-        pos[3] = new Vector2(7.25f, 3.14f);
+        pos[0] = new Vector2(-12f, 6f);
+        pos[1] = new Vector2(-12f, -6f);
+        pos[2] = new Vector2(12f, -6f);
+        pos[3] = new Vector2(12f, 6f);
 
         result = new ResonForDeath();
 
         CreateRandomRespown();
         respownPos.SetActive(true);
+        UnVisibleBackgroundLiner();
     }
 
     // Update is called once per frame
@@ -96,5 +99,22 @@ public class GameManager : MonoBehaviour
 
     public void AddActions(Command cmd){
         cmdList.Add(cmd);
+    }
+
+    public void VisibleBackgroundLiner(Color color, float width){
+        LineRenderer lineRenderer = backgroundLiner.GetComponent<LineRenderer>();
+        lineRenderer.startColor = color;
+        lineRenderer.endColor = color;
+        lineRenderer.enabled = true;
+        lineRenderer.startWidth = width;
+        lineRenderer.endWidth = width;
+    }
+
+    public void UnVisibleBackgroundLiner(){
+        LineRenderer lineRenderer = backgroundLiner.GetComponent<LineRenderer>();
+        lineRenderer.enabled = false;
+
+        lineRenderer.startWidth = 0.25f;
+        lineRenderer.endWidth = 0.25f;
     }
 }

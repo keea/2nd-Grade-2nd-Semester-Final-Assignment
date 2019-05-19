@@ -86,6 +86,7 @@ public class MoveObject : MonoBehaviour
 
     private void OnMouseDrag()
     {
+        GM.VisibleBackgroundLiner(obj_color, OnMouseDonwTime+0.25f);
         //마우스 드래그
         Debug.Log(OnMouseDonwTime);
         anim.SetBool("isPingPongZoom", true);
@@ -101,6 +102,7 @@ public class MoveObject : MonoBehaviour
     //마우스 뗄 떼 초기화.
     private void OnMouseUp()
     {
+        GM.UnVisibleBackgroundLiner();
         anim.SetBool("isPingPongZoom", false);
         OnMouseDonwTime = 0.0f;
     }
