@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -8,12 +10,13 @@ public class GameManager : MonoBehaviour
     public GameObject[] gameObj;
     public float createTime;
     float tick = 0.0f;
-    Vector2[] pos;
-    public GameObject respownPos;
+    public GameObject[] respownPos;
+    public Sprite respownSpriteOn;
+    public Sprite respownSpriteOff;
 
     public int createMaxNum;
     int countCreateObj;
-    Vector2 createPosition;
+    int createPositionIndex;
 
     ResonForDeath result;
 
@@ -21,46 +24,113 @@ public class GameManager : MonoBehaviour
 
     public GameObject backgroundLiner;
 
+    Dictionary<int, GameObject> moveObjects;
+
+    public int maxHp;
+    int hp;
+
+    float time;
+
+    private UiManager uiManager;
+
+    bool isShowResult;
+
     // Start is called before the first frame update
     void Start()
     {
-        pos = new Vector2[MAX_CREATE_POSTION];
-        pos[0] = new Vector2(-12f, 6f);
-        pos[1] = new Vector2(-12f, -6f);
-        pos[2] = new Vector2(12f, -6f);
-        pos[3] = new Vector2(12f, 6f);
-
+        Time.timeScale = 1;
         result = new ResonForDeath();
+        moveObjects = new Dictionary<int, GameObject>();
+        uiManager = GameObject.Find("UiManager").GetComponent<UiManager>();
+        uiManager.ShowGamePanel();
+        hp = maxHp;
+        uiManager.setHpText(hp);
+        time = 0;
 
         CreateRandomRespown();
-        respownPos.SetActive(true);
         UnVisibleBackgroundLiner();
+        isShowResult = false;
     }
 
     // Update is called once per frame
     void Update()
     {
+        uiManager.setTimeText(time);
+
         if(cmdList.Count > 0)
         {
             switch (cmdList[0].type)
             {
                 case STATE.DEATH_TO_MONSTER:
-                result.deathToMonster+=1;
+                    result.deathToMonster+=1;
                 break;
 
                 case STATE.DEATH_TO_CRASH:
-                result.deathToCrash+=1;
+                    result.deathToCrash+=1;
                 break;
 
                 case STATE.DEATH_TO_BULLET:
-                result.deathToAttack+=1;
+                    result.deathToCrash+=1;
                 break;
             }
+
+            hp-=1;
+            uiManager.setHpText(hp);
+
+            GameObject deleteObj = moveObjects[cmdList[0].instanceId];
+            bool rmResult = moveObjects.Remove(cmdList[0].instanceId);
+            Destroy(deleteObj);
+
             cmdList.RemoveAt(0);
             countCreateObj-=1;
-            respownPos.SetActive(true);
+            
         }
-        CreateMoveObject();
+
+        if(hp <= 0)
+        {
+            StartCoroutine("SlowMotion");
+            AllDeath();
+            if(isShowResult)
+                SetResultUiPanel();
+        }else
+        {
+           
+            CreateMoveObject();
+            time+=Time.deltaTime;
+        }
+
+        // if(hp<=0){
+        //     StartCoroutine("SlowMotion");
+        //     if(isShowResult)
+        //         SetResultUiPanel();
+        // }
+        // else
+        // {
+        //     if(cmdList.Count > 0)
+        // {
+        //     switch (cmdList[0].type)
+        //     {
+        //         case STATE.DEATH_TO_MONSTER:
+        //         result.deathToMonster+=1;
+        //         break;
+
+        //         case STATE.DEATH_TO_CRASH:
+        //         result.deathToCrash+=1;
+        //         break;
+
+        //         case STATE.DEATH_TO_BULLET:
+        //         result.deathToAttack+=1;
+        //         break;
+        //     }
+        //     hp-=1;
+        //     moveObjects.Remove(cmdList[0].instanceId);
+        //     cmdList.RemoveAt(0);
+        //     countCreateObj-=1;
+        //     uiManager.setHpText(hp);
+        // }
+        // CreateMoveObject();
+        // time+=Time.deltaTime;
+        // }
     }
 
     //움직이는 객체 생성.
@@ -72,10 +142,13 @@ public class GameManager : MonoBehaviour
                 //Instantitate(생성할오브젝트, postion, rotation)
                 //Quaternion.identity = rotation(회전각)이 0,0,0 임을 의미.
                 //int randNum = Random.Range(0, (MAX_CREATE_POSTION - countCreateObj)-1);
-                Instantiate(gameObj[Random.Range(0, gameObj.Length)], createPosition, Quaternion.identity);
+                
+                GameObject obj = Instantiate(gameObj[Random.Range(0, gameObj.Length)], respownPos[createPositionIndex].transform.position, Quaternion.identity);
                 tick = createTime;
                 countCreateObj++;
-
+                respownPos[createPositionIndex].GetComponent<SpriteRenderer>().sprite = respownSpriteOff;
+                Debug.Log("인스턴스 아이디 : " + obj.GetInstanceID());
+                moveObjects.Add(obj.GetInstanceID(), obj);
                 //다음에 생성할 위치.
                 CreateRandomRespown();
 
@@ -88,13 +161,28 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    void AllDeath()
+    {
+        //Key값으로 Loop(반복문)를 돌리고 해당 key만 삭제
+        foreach(int sKey in moveObjects.Keys.ToList()){
+            GameObject gameObj = moveObjects[sKey];
+            gameObj.GetComponent<MoveObject>().DestroyObject();
+
+            moveObjects.Remove(sKey);
+            Destroy(gameObj);
+        }
+    }
+
+    void SetResultUiPanel(){
+        uiManager.setResultPanel(time, result);
+        uiManager.ShowResultPanel();
+    }
+
     void CreateRandomRespown(){
         int randNum = Random.Range(0, (MAX_CREATE_POSTION));
-        createPosition = pos[randNum];
-        respownPos.transform.position = createPosition;
-
-        if(countCreateObj >= createMaxNum)
-            respownPos.SetActive(false);
+        createPositionIndex = randNum;
+        respownPos[createPositionIndex].GetComponent<SpriteRenderer>().sprite = respownSpriteOn;
+        //respownPos.transform.position = createPosition;
     }
 
     public void AddActions(Command cmd){
@@ -116,5 +204,16 @@ public class GameManager : MonoBehaviour
 
         lineRenderer.startWidth = 0.25f;
         lineRenderer.endWidth = 0.25f;
+    }
+
+    IEnumerator SlowMotion(){
+        Time.timeScale = 0.1f;
+        yield return new WaitForSeconds(0.3f);
+        Time.timeScale = 0;
+        isShowResult = true;
+    }
+
+    public void Restart(){
+        SceneManager.LoadScene("GameScene");
     }
 }

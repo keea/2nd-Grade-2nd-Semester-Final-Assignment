@@ -30,6 +30,8 @@ public class MoveObject : MonoBehaviour
 
     private Shake shake;
 
+    AudioSource BoomSound;
+
     void Start()
     {
         target = Vector2.zero;
@@ -51,6 +53,8 @@ public class MoveObject : MonoBehaviour
             obj_color = new Color(0, 1, 0, 1);
             break;
         }
+
+        BoomSound = GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -62,23 +66,39 @@ public class MoveObject : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        cmd.instanceId = gameObject.GetInstanceID();
         if(collision.gameObject.tag.Equals("Enemy"))
         {
-            Destroy(gameObject); //자기 자신 제거
+            //Destroy(gameObject); //자기 자신 제거
             cmd.type = STATE.DEATH_TO_MONSTER;   
         }
         else if(collision.gameObject.tag.Equals("Bullet")){
-            Destroy(gameObject); //자기 자신 제거
+            //Destroy(gameObject); //자기 자신 제거
             cmd.type = STATE.DEATH_TO_BULLET;
         }
         else if(collision.gameObject.tag.Equals("MoveObject")){
-            Destroy(gameObject); //자기 자신 제거
+            //Destroy(gameObject); //자기 자신 제거
             cmd.type = STATE.DEATH_TO_CRASH;
         }
 
+        BoomSound.time = 0;
+        BoomSound.Play();
+
         GM.AddActions(cmd);
         Debug.Log("color : " + obj_color);
+
         shake.CamShake();
+        GameObject temp = Instantiate(spltters[Random.Range(0, spltters.Length)], transform.position, Quaternion.identity);
+        temp.GetComponent<SpriteRenderer>().color = obj_color;
+        Instantiate(effect, transform.position, Quaternion.identity);
+    }
+
+    public void DestroyObject(){
+        // cmd.instanceId = gameObject.GetInstanceID();
+        // cmd.type = STATE.NONE;
+        // GM.AddActions(cmd);
+
+        BoomSound.Play();
         GameObject temp = Instantiate(spltters[Random.Range(0, spltters.Length)], transform.position, Quaternion.identity);
         temp.GetComponent<SpriteRenderer>().color = obj_color;
         Instantiate(effect, transform.position, Quaternion.identity);
