@@ -30,8 +30,8 @@ public class MoveObject : MonoBehaviour
 
     private Shake shake;
 
-    AudioSource BoomSound;
 
+    private SoundManager soundManager;
     void Start()
     {
         target = Vector2.zero;
@@ -53,8 +53,7 @@ public class MoveObject : MonoBehaviour
             obj_color = new Color(0, 1, 0, 1);
             break;
         }
-
-        BoomSound = GetComponent<AudioSource>();
+        soundManager = GameObject.Find("SoundManager").GetComponent<SoundManager>();
     }
 
     // Update is called once per frame
@@ -81,8 +80,7 @@ public class MoveObject : MonoBehaviour
             cmd.type = STATE.DEATH_TO_CRASH;
         }
 
-        BoomSound.time = 0;
-        BoomSound.Play();
+        soundManager.PlayBoom();
 
         GM.AddActions(cmd);
         Debug.Log("color : " + obj_color);
@@ -98,7 +96,7 @@ public class MoveObject : MonoBehaviour
         // cmd.type = STATE.NONE;
         // GM.AddActions(cmd);
 
-        BoomSound.Play();
+        soundManager.PlayBoom();
         GameObject temp = Instantiate(spltters[Random.Range(0, spltters.Length)], transform.position, Quaternion.identity);
         temp.GetComponent<SpriteRenderer>().color = obj_color;
         Instantiate(effect, transform.position, Quaternion.identity);
