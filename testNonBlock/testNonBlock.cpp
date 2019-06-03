@@ -1,4 +1,4 @@
-// testNonBlock.cpp : Defines the entry point for the application.
+ï»¿// testNonBlock.cpp : Defines the entry point for the application.
 //
 
 #include "stdafx.h"
@@ -11,11 +11,12 @@
 #include "UserInfoCtrl.h"
 
 #define MAX_LOADSTRING 100
+#define ID_EDIT 100
 
-//·Î±×ÀÎ Á¤º¸ ¶ç¿ì±â.
-//->·£´ıÇÑ »ö»ó °¡Á®¿À±â.
+//ë¡œê·¸ì¸ ì •ë³´ ë„ìš°ê¸°.
+//->ëœë¤í•œ ìƒ‰ìƒ ê°€ì ¸ì˜¤ê¸°.
 
-//ÀûÀº ±ÛÀÚ¸¦ È­¸é¿¡ ¶ç¿ì±â.
+//ì ì€ ê¸€ìë¥¼ í™”ë©´ì— ë„ìš°ê¸°.
 
 
 CCirQueue g_Queue;
@@ -36,10 +37,14 @@ BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK EditFunction(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 void Send(char *data, int size);
-void Draw(HWND hWnd, PAINTSTRUCT * ps);
+//void Draw(HWND hWnd, PAINTSTRUCT * ps);
 
-//»õ·Î Ãß°¡ÇÑ ÄÚµåµé
+//ìƒˆë¡œ ì¶”ê°€í•œ ì½”ë“œë“¤
 UserInfoCtrl g_userInfoCtrl;
+void Update();
+bool isInputText = false;
+char g_inputText[20];
+HWND g_hEdit;
 
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
@@ -77,9 +82,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				DispatchMessage(&msg);
 			}
 		}
-		else //¸Ş½ÃÁö°¡ ¾øÀ» °æ¿ì.
+		else //ë©”ì‹œì§€ê°€ ì—†ì„ ê²½ìš°.
 		{
-			InvalidateRect(g_hWnd, NULL, FALSE);
+			//InvalidateRect(g_hWnd, NULL, FALSE);
+			Update();
 		}
 	}
 
@@ -166,7 +172,7 @@ SOCKET g_hSocket;
 #define WM_SOCKET   WM_USER+1
 
 #include <stdio.h>
-// ¼ÒÄÏ ÇÔ¼ö ¿À·ù Ãâ·Â
+// ì†Œì¼“ í•¨ìˆ˜ ì˜¤ë¥˜ ì¶œë ¥
 void err_display(int errcode)
 {
 	LPVOID lpMsgBuf;
@@ -176,7 +182,7 @@ void err_display(int errcode)
 		NULL, errcode,
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 		(LPTSTR)&lpMsgBuf, 0, NULL);
-	//printf("[¿À·ù] %s", (LPCTSTR)lpMsgBuf);
+	//printf("[ì˜¤ë¥˜] %s", (LPCTSTR)lpMsgBuf);
 	LocalFree(lpMsgBuf);
 }
 
@@ -192,14 +198,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_SOCKET:
 		{
-			// ¿À·ù ¹ß»ı ¿©ºÎ È®ÀÎ
+			// ì˜¤ë¥˜ ë°œìƒ ì—¬ë¶€ í™•ì¸
 			if(WSAGETSELECTERROR(lParam))
 			{
 				err_display(WSAGETSELECTERROR(lParam));
 				break;
 			}
 
-			// ¸Ş½ÃÁö Ã³¸®
+			// ë©”ì‹œì§€ ì²˜ë¦¬
 			switch(WSAGETSELECTEVENT(lParam))
 			{
 			case FD_READ:
@@ -298,7 +304,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 		}
 		break;		
-		case	 WM_RBUTTONDOWN:
+		/*case	 WM_RBUTTONDOWN:
 			{
 				int x = LOWORD(lParam);
 				int y = HIWORD(lParam);
@@ -311,26 +317,38 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				Send((char *)&pt, pt.PktSize);
 			}
-			break;
+			break;*/
 		case WM_KEYDOWN:
 			{
 				if (wParam == VK_RETURN)
 				{
-					HWND hEdit = CreateWindow("edit", NULL, WS_CHILD | WS_VISIBLE | WS_BORDER , 100, 100, 200, 25, hWnd, NULL, hInst, NULL);
-					g_OldEditFunc = SetWindowLong(hEdit, GWL_WNDPROC, (LONG)EditFunction);
-					SetFocus(hEdit);
+					isInputText = true;
+					g_hEdit = CreateWindow("edit", NULL, WS_CHILD | WS_VISIBLE | WS_BORDER , -500, -500, 200, 25, hWnd, (HMENU)ID_EDIT, hInst, NULL);
+					g_OldEditFunc = SetWindowLong(g_hEdit, GWL_WNDPROC, (LONG)EditFunction);
+					SetFocus(g_hEdit);
 				}
 
 			}
 			break;
-		case WM_PAINT:
+
+		case WM_COMMAND:
 		{
-			Draw(hWnd, &ps);
+			switch (LOWORD(wParam))
+			{
+			case ID_EDIT:
+				switch (HIWORD(wParam))
+				{
+				case EN_CHANGE:
+					GetWindowText(g_hEdit, g_inputText, 20);
+					break;
+				}
+			}
 		}
-			break;
+		break;
+
 		case WM_DESTROY: 
 		{
-			//·Î±×¾Æ¿ô Çß´Ù´Â °ÍÀ» ¾Ë¸°´Ù.
+			//ë¡œê·¸ì•„ì›ƒ í–ˆë‹¤ëŠ” ê²ƒì„ ì•Œë¦°ë‹¤.
 			LOGOUT logout;
 			logout.PktID = PKT_REQ_LOGOUT;
 			logout.PktSize = sizeof(LOGOUT);
@@ -351,6 +369,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK EditFunction(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	
 	switch (message)
 	{
 	case WM_KEYDOWN:
@@ -366,6 +385,9 @@ LRESULT CALLBACK EditFunction(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 			login.PktSize = sizeof(LOGIN);
 			strcpy(login.userStrID, g_myStrID);
 			Send((char *)&login, login.PktSize);
+
+			g_inputText[0] = '\0';
+			isInputText = false;
 		}
 	}
 	return TRUE;		
@@ -386,26 +408,52 @@ void Send(char *data, int size)
 	}
 }
 
-void Draw(HWND hWnd, PAINTSTRUCT * ps) {
-	static HDC hdc, MemDC;
-	static HBITMAP BackBit, oldBackBit;
+//ì—…ë°ì´íŠ¸ í•¨ìˆ˜
+void Update() {
 	static RECT bufferRT;
-	MemDC = BeginPaint(hWnd, ps);
+	GetClientRect(g_hWnd, &bufferRT);
 
-	GetClientRect(hWnd, &bufferRT);
-	hdc = CreateCompatibleDC(MemDC);
-	BackBit = CreateCompatibleBitmap(MemDC, bufferRT.right, bufferRT.bottom);
-	oldBackBit = (HBITMAP)SelectObject(hdc, BackBit);
-	PatBlt(hdc, 0, 0, bufferRT.right, bufferRT.bottom, WHITENESS);
+	HDC hDcMain = GetDC(g_hWnd); //ê¸°ì¡´ DC
+	HBITMAP hBitmap, OldBitmap;
+
+	//ëœë” ë¡œì§
+	HDC hdcBuffer = CreateCompatibleDC(hDcMain); //ìƒˆë¡œìš´ DC
+	hBitmap = CreateCompatibleBitmap(hDcMain, bufferRT.right, bufferRT.bottom); // crt ê·œê²©ëŒ€ë¡œ ì¢…ì´ ìƒì„±
+	OldBitmap = (HBITMAP)SelectObject(hdcBuffer, hBitmap); // ì¢…ì´ êµì²´
+
+	//í•˜ì–€ìƒ‰ìœ¼ë¡œ ë³€ê²½
+	FillRect(hdcBuffer, &bufferRT, (HBRUSH)GetStockObject(WHITE_BRUSH));
 	
-	//¿©±â¿¡ ±×¸®±â ÄÚµå
-	g_userInfoCtrl.ShowUsers(bufferRT, hdc);
+	//ì—¬ê¸°ì— ê·¸ë¦¬ê¸° í•¨ìˆ˜
+	TextOut(hdcBuffer, 10, 10, g_inputText, strlen(g_inputText));
+	g_userInfoCtrl.ShowUsers(bufferRT, hdcBuffer);
 
-	/** ´õºí¹öÆÛ¸µ ³¡Ã³¸® ÀÔ´Ï´Ù. **/
-	GetClientRect(hWnd, &bufferRT);
-	BitBlt(MemDC, 0, 0, bufferRT.right, bufferRT.bottom, hdc, 0, 0, SRCCOPY);
-	SelectObject(hdc, oldBackBit);
-	DeleteObject(BackBit);
-	DeleteDC(hdc);
-	EndPaint(hWnd, ps);
+
+	BitBlt(hDcMain, 0, 0, bufferRT.right, bufferRT.bottom, hdcBuffer, 0, 0, SRCCOPY); //ë°°ê»´ê·¸ë¦¬ê¸°
+	DeleteObject(SelectObject(hdcBuffer, OldBitmap)); // ì¢…ì´ ì›ë˜ëŒ€ë¡œ í•œ í›„ ì œê±°
+	DeleteDC(hdcBuffer);
 }
+
+//void Draw(HWND hWnd, PAINTSTRUCT * ps) {
+//	static HDC hdc, MemDC;
+//	static HBITMAP BackBit, oldBackBit;
+//	static RECT bufferRT;
+//	MemDC = BeginPaint(hWnd, ps);
+//
+//	GetClientRect(hWnd, &bufferRT);
+//	hdc = CreateCompatibleDC(MemDC);
+//	BackBit = CreateCompatibleBitmap(MemDC, bufferRT.right, bufferRT.bottom);
+//	oldBackBit = (HBITMAP)SelectObject(hdc, BackBit);
+//	PatBlt(hdc, 0, 0, bufferRT.right, bufferRT.bottom, WHITENESS);
+//	
+//	//ì—¬ê¸°ì— ê·¸ë¦¬ê¸° ì½”ë“œ
+//	g_userInfoCtrl.ShowUsers(bufferRT, hdc);
+//
+//	/** ë”ë¸”ë²„í¼ë§ ëì²˜ë¦¬ ì…ë‹ˆë‹¤. **/
+//	GetClientRect(hWnd, &bufferRT);
+//	BitBlt(MemDC, 0, 0, bufferRT.right, bufferRT.bottom, hdc, 0, 0, SRCCOPY);
+//	SelectObject(hdc, oldBackBit);
+//	DeleteObject(BackBit);
+//	DeleteDC(hdc);
+//	EndPaint(hWnd, ps);
+//}
