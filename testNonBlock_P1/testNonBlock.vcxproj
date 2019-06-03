@@ -140,6 +140,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="testNonBlock.cpp" />
+    <ClCompile Include="UserInfoCtrl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="testNonBlock.rc" />
@@ -150,6 +151,8 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="testNonBlock.h" />
+    <ClInclude Include="UserInfo.h" />
+    <ClInclude Include="UserInfoCtrl.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico" />

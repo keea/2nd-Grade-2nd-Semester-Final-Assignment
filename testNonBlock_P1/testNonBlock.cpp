@@ -8,17 +8,22 @@
 #include "CirQueue.h"
 #include <time.h>
 #include <map>
+#include "UserInfoCtrl.h"
 
 #define MAX_LOADSTRING 100
 
-//해쉬맵 테스트
-std::map<std::string, GAMETEXT> g_testHast;
+//로그인 정보 띄우기.
+//->랜덤한 색상 가져오기.
+
+//적은 글자를 화면에 띄우기.
+
 
 CCirQueue g_Queue;
 
 LONG			 g_OldEditFunc;
 char              g_myStrID[20];
-DWORD       g_myID;
+DWORD				g_myID;
+HWND g_hWnd;
 
 // Global Variables:
 HINSTANCE hInst;								// current instance
@@ -32,6 +37,9 @@ LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK EditFunction(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 void Send(char *data, int size);
 void Draw(HWND hWnd, PAINTSTRUCT * ps);
+
+//새로 추가한 코드들
+UserInfoCtrl g_userInfoCtrl;
 
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
@@ -60,18 +68,18 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	{
 		if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
-			if(msg.message == WM_QUIT)
+			if (msg.message == WM_QUIT)
 				break;
 
-			if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)) 
+			//if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)) 
 			{
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			}
 		}
-		else
+		else //메시지가 없을 경우.
 		{
-
+			InvalidateRect(g_hWnd, NULL, FALSE);
 		}
 	}
 
@@ -126,20 +134,20 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-   HWND hWnd;
+
 
    hInst = hInstance; // Store instance handle in our global variable
 
-   hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+   g_hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
 
-   if (!hWnd)
+   if (!g_hWnd)
    {
       return FALSE;
    }
 
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
+   ShowWindow(g_hWnd, nCmdShow);
+   UpdateWindow(g_hWnd);
 
    return TRUE;
 }
@@ -225,23 +233,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 							case PKT_REQ_LOGIN:
 							{
 								LOGIN *pLogin = (LOGIN *)pHeader;
+								g_userInfoCtrl.AddUserInfo(*pHeader);
+
 								int x = rand() % 2000;
 								int y = rand() % 1000;
 
-								GAMETEXT temp;
-								strcpy(temp.gameText, pHeader->userStrID);
-								temp.posX = rand() % 500;
-								temp.posY = rand() % 500;
-								g_testHast[std::string(temp.gameText)] = temp;
-
-								//HDC hDC = GetDC(hWnd);
-								//TextOut(hDC, x, y, pLogin->userStrID, strlen(pLogin->userStrID));
-								//ReleaseDC(hWnd, hDC);
-
-								InvalidateRect(hWnd, NULL, FALSE);
+								HDC hDC = GetDC(hWnd);
+								TextOut(hDC, x, y, pLogin->userStrID, strlen(pLogin->userStrID));
+								ReleaseDC(hWnd, hDC);
 
 							}
 							break;
+
+							case PKT_REQ_LOGOUT: {
+								LOGOUT * pLogout = (LOGOUT *)pHeader;
+								g_userInfoCtrl.DelUserInfo(pLogout->userID);
+							}
+								break;
 						}
 						g_Queue.OnPopData(pHeader->PktSize);
 
@@ -320,10 +328,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			Draw(hWnd, &ps);
 		}
 			break;
-		case WM_DESTROY:
+		case WM_DESTROY: 
+		{
+			//로그아웃 했다는 것을 알린다.
+			LOGOUT logout;
+			logout.PktID = PKT_REQ_LOGOUT;
+			logout.PktSize = sizeof(LOGOUT);
+			Send((char *)&logout, logout.PktSize);
+
 			PostQuitMessage(0);
 
-			closesocket(g_hSocket);	
+			closesocket(g_hSocket);
+		}
+			
 			break;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
@@ -382,12 +399,7 @@ void Draw(HWND hWnd, PAINTSTRUCT * ps) {
 	PatBlt(hdc, 0, 0, bufferRT.right, bufferRT.bottom, WHITENESS);
 	
 	//여기에 그리기 코드
-	for (auto it = g_testHast.begin(); it != g_testHast.end(); it++) {
-		
-		TextOut(hdc, it->second.posX, it->second.posY, (it->first).c_str(), strlen((it->first).c_str()));
-		//DrawText(hdc, (it->first).c_str(), strlen((it->first).c_str()), &bufferRT, DT_SINGLELINE | DT_VCENTER);
-	}
-
+	g_userInfoCtrl.ShowUsers(bufferRT, hdc);
 
 	/** 더블버퍼링 끝처리 입니다. **/
 	GetClientRect(hWnd, &bufferRT);

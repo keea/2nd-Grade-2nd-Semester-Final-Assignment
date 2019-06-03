@@ -24,6 +24,9 @@
     <ClCompile Include="testNonBlock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="UserInfoCtrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="testNonBlock.rc">
@@ -44,6 +47,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="testNonBlock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UserInfoCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UserInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

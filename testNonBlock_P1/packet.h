@@ -25,6 +25,11 @@ typedef struct  _tgLogin : PACKETHEADER
 {
 }LOGIN;
 
+#define PKT_REQ_LOGOUT		0xa0000002
+typedef struct  _tgLogout : PACKETHEADER
+{
+}LOGOUT;
+
 #define PKT_GAME_TEXT		0x10000001
 typedef struct  _tgGameText : PACKETHEADER
 {
