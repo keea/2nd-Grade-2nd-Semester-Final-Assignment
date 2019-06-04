@@ -248,7 +248,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 								if (g_loginTime == pLogin->time) {
 									isLogin = true;
 									g_userInfoCtrl.SetMyInfo(pLogin->userID);
-									OutputDebugString("로그인 했다.");
 								}
 
 								//int x = rand() % 2000;
@@ -387,17 +386,14 @@ LRESULT CALLBACK EditFunction(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 
 				strcpy(login.userStrID, g_myStrID);
 				Send((char *)&login, login.PktSize);
+
+				g_inputText[0] = '\0';
+				isInputText = false;
 			}
 			else 
 			{
-				//게임에 관련된 처리를 한다.
-				//공격 or 방어.
-
 
 			}
-
-			g_inputText[0] = '\0';
-			isInputText = false;
 		}
 	}
 	return TRUE;		
