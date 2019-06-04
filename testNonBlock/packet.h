@@ -31,13 +31,7 @@ typedef struct  _tgLogout : PACKETHEADER
 {
 }LOGOUT;
 
-#define PKT_GAME_TEXT		0x10000001
-typedef struct  _tgGameText : PACKETHEADER
-{
-	char	gameText[20];
-	int posX = 0;
-	int posY = 0;
-}GAMETEXT;
+
 
 #define PKT_RPOINT				0x01000010
 typedef struct  _tgRPoint : PACKETHEADER
@@ -45,6 +39,11 @@ typedef struct  _tgRPoint : PACKETHEADER
 	int x;
 	int y;
 } RPOINT;
+
+#define PKT_GAME_TEXT_ADD	0x10000001
+typedef struct _tgGameTextAdd : PACKETHEADER {
+	char gameText[20];
+} TEXT_ADD;
 
 #pragma pack(pop)
 

@@ -390,8 +390,8 @@ LRESULT CALLBACK EditFunction(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 			}
 			else 
 			{
-				//게임에 관련된 처리를 한다.
-				//공격 or 방어.
+				//존재한 값을 했는가?
+				//아닌가?로 나누게 함.
 
 
 			}

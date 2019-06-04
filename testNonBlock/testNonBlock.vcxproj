@@ -140,6 +140,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="testNonBlock.cpp" />
+    <ClCompile Include="TextInfoControl.cpp" />
     <ClCompile Include="UserInfoCtrl.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -147,10 +148,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CirQueue.h" />
+    <ClInclude Include="GameText.h" />
     <ClInclude Include="packet.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="testNonBlock.h" />
+    <ClInclude Include="TextInfoControl.h" />
     <ClInclude Include="UserInfo.h" />
     <ClInclude Include="UserInfoCtrl.h" />
   </ItemGroup>
