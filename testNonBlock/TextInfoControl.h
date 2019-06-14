@@ -1,9 +1,10 @@
 #pragma once
 #include <hash_map>
+#include <string>
 #include "GameText.h"
 
 using namespace std;
-#define TEXT_MAP std::hash_map< char[20], GameText> 
+#define TEXT_MAP std::hash_map<std::string, GameText> 
 
 enum TYPE {
 	SCORE_UP,
@@ -16,6 +17,6 @@ private:
 	TEXT_MAP texts;
 	void Add(GameText gameText);
 public:
-	TYPE ControlText(char Text[20], DWORD userId);
+	TYPE ControlText(string Text, DWORD userId);
 };
 

@@ -9,6 +9,7 @@
 #include <time.h>
 #include <map>
 #include "UserInfoCtrl.h"
+#include "TextInfoControl.h"
 
 #define MAX_LOADSTRING 100
 #define ID_EDIT 100
@@ -47,6 +48,7 @@ char g_inputText[20];
 HWND g_hEdit;
 bool isLogin = false;
 DWORD g_loginTime = 0;
+TextInfoControl g_textInfoCtrl;
 
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
@@ -392,8 +394,14 @@ LRESULT CALLBACK EditFunction(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 			{
 				//존재한 값을 했는가?
 				//아닌가?로 나누게 함.
-
-
+				//존재하는 경우 데이터 삭제하고 점수 추가
+				//존재안하는 경우 랜덤한 위치에서 생성.
+				char text[20];
+				strcpy(text, g_myStrID);
+				int value = g_textInfoCtrl.ControlText(text, g_userInfoCtrl.GetMyID());
+				char log[1024];
+				sprintf(log, "결과 값은 %d\n", value);
+				OutputDebugString(log);
 			}
 
 			g_inputText[0] = '\0';

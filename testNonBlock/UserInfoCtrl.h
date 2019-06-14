@@ -17,5 +17,6 @@ public:
 	void ShowUsers(RECT Winsize, HDC hdc);
 	void DelUserInfo(DWORD userInfo);
 	void SetMyInfo(DWORD userID);
+	DWORD GetMyID() { return myUserInfo.userID; };
 };
 
