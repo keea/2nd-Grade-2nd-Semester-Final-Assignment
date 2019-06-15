@@ -42,7 +42,7 @@ void Send(char *data, int size);
 
 //새로 추가한 코드들
 UserInfoCtrl g_userInfoCtrl;
-void Update();
+void Update(DWORD tick);
 bool isInputText = false;
 char g_inputText[20];
 HWND g_hEdit;
@@ -73,6 +73,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	hAccelTable = LoadAccelerators(hInstance, (LPCTSTR)IDC_TESTNONBLOCK);
 
 	// Main message loop:
+	DWORD tick = GetTickCount();
+
 	while (1) 
 	{
 		if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -88,8 +90,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		}
 		else //메시지가 없을 경우.
 		{
+			DWORD curTick = GetTickCount();
 			//InvalidateRect(g_hWnd, NULL, FALSE);
-			Update();
+			Update(curTick - tick);
+			tick = curTick;
 		}
 	}
 
@@ -252,14 +256,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 									g_userInfoCtrl.SetMyInfo(pLogin->userID);
 									OutputDebugString("로그인 했다.");
 								}
+								else {
+									pLogin->PktID = PKT_REQ_BEFORE_JOIN;
+									UserInfo info = g_userInfoCtrl.GetMyInfo();
+									strcpy(pLogin->userStrID, info.userName);
+									Send((char *)pLogin, pLogin->PktSize);
+								}
+							}
+							break;
 
-								//int x = rand() % 2000;
-								//int y = rand() % 1000;
+							case PKT_REQ_BEFORE_JOIN:
+							{
+								LOGIN *pLogin = (LOGIN *)pHeader;
+								g_userInfoCtrl.AddUserInfo(*pHeader);
+							}
+							break;
 
-								//HDC hDC = GetDC(hWnd);
-								//TextOut(hDC, x, y, pLogin->userStrID, strlen(pLogin->userStrID));
-								//ReleaseDC(hWnd, hDC);
-
+							case PKT_GAME_TEXT_ADD:
+							{
+								TEXT_ADD *pText = (TEXT_ADD *)pHeader;
+								GameText text;
+								strcpy(text.text, pText->gameText);
+								text.userID = pText->userID;
+								text.pos.x = pText->posX;
+								text.pos.y = 0;
+								if(g_userInfoCtrl.GetColor(text.userID, &text.color))
+									g_textInfoCtrl.Add(text);
 							}
 							break;
 
@@ -398,10 +420,25 @@ LRESULT CALLBACK EditFunction(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 				//존재안하는 경우 랜덤한 위치에서 생성.
 				char text[20];
 				strcpy(text, g_myStrID);
-				int value = g_textInfoCtrl.ControlText(text, g_userInfoCtrl.GetMyID());
+				int check = g_textInfoCtrl.CheckText(text);
+
 				char log[1024];
-				sprintf(log, "결과 값은 %d\n", value);
+				sprintf(log, "결과 값은 %d\n", check);
 				OutputDebugString(log);
+				if (check == ADD_TEXT) {
+					//추가한 데이터를 보낸다.
+					TEXT_ADD textAdd;
+					textAdd.PktID = PKT_GAME_TEXT_ADD;
+					textAdd.PktSize = sizeof(TEXT_ADD);
+					strcpy(textAdd.gameText, text);
+					textAdd.posX = rand() % 500;
+					Send((char *)&textAdd, textAdd.PktSize);
+
+				}
+				else if (check == SCORE_UP) {
+					//점수 데이터를 보낸다.
+
+				}
 			}
 
 			g_inputText[0] = '\0';
@@ -427,7 +464,7 @@ void Send(char *data, int size)
 }
 
 //업데이트 함수
-void Update() {
+void Update(DWORD tick) {
 	static RECT bufferRT;
 	GetClientRect(g_hWnd, &bufferRT);
 
@@ -444,34 +481,11 @@ void Update() {
 	
 	//여기에 그리기 함수
 	TextOut(hdcBuffer, 10, 10, g_inputText, strlen(g_inputText));
-	g_userInfoCtrl.ShowUsers(bufferRT, hdcBuffer);
+	g_userInfoCtrl.ShowUsers(bufferRT, hdcBuffer); //유저 정보창
 
+	g_textInfoCtrl.ShowText(tick, hdcBuffer); //텍스트들
 
 	BitBlt(hDcMain, 0, 0, bufferRT.right, bufferRT.bottom, hdcBuffer, 0, 0, SRCCOPY); //배껴그리기
 	DeleteObject(SelectObject(hdcBuffer, OldBitmap)); // 종이 원래대로 한 후 제거
 	DeleteDC(hdcBuffer);
 }
-
-//void Draw(HWND hWnd, PAINTSTRUCT * ps) {
-//	static HDC hdc, MemDC;
-//	static HBITMAP BackBit, oldBackBit;
-//	static RECT bufferRT;
-//	MemDC = BeginPaint(hWnd, ps);
-//
-//	GetClientRect(hWnd, &bufferRT);
-//	hdc = CreateCompatibleDC(MemDC);
-//	BackBit = CreateCompatibleBitmap(MemDC, bufferRT.right, bufferRT.bottom);
-//	oldBackBit = (HBITMAP)SelectObject(hdc, BackBit);
-//	PatBlt(hdc, 0, 0, bufferRT.right, bufferRT.bottom, WHITENESS);
-//	
-//	//여기에 그리기 코드
-//	g_userInfoCtrl.ShowUsers(bufferRT, hdc);
-//
-//	/** 더블버퍼링 끝처리 입니다. **/
-//	GetClientRect(hWnd, &bufferRT);
-//	BitBlt(MemDC, 0, 0, bufferRT.right, bufferRT.bottom, hdc, 0, 0, SRCCOPY);
-//	SelectObject(hdc, oldBackBit);
-//	DeleteObject(BackBit);
-//	DeleteDC(hdc);
-//	EndPaint(hWnd, ps);
-//}

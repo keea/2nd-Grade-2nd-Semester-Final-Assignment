@@ -18,5 +18,7 @@ public:
 	void DelUserInfo(DWORD userInfo);
 	void SetMyInfo(DWORD userID);
 	DWORD GetMyID() { return myUserInfo.userID; };
+	bool GetColor(DWORD userID, COLORREF * color);
+	UserInfo GetMyInfo(){ return myUserInfo; };
 };
 

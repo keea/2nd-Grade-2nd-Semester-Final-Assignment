@@ -1,6 +1,7 @@
 #pragma once
 #include <hash_map>
 #include <string>
+#include "packet.h"
 #include "GameText.h"
 
 using namespace std;
@@ -15,8 +16,12 @@ class TextInfoControl
 {
 private:
 	TEXT_MAP texts;
-	void Add(GameText gameText);
+	float speed;
+	DWORD tick;
 public:
-	TYPE ControlText(string Text, DWORD userId);
+	TextInfoControl();
+	void ShowText(DWORD tick, HDC hdc);
+	TYPE CheckText(string text);
+	void Add(GameText gameText);
 };
 

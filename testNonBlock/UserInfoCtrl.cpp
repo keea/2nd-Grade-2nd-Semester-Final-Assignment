@@ -61,4 +61,18 @@ void UserInfoCtrl::SetMyInfo(DWORD userID)
 	myUserInfo = userInfos[userID];
 }
 
+bool UserInfoCtrl::GetColor(DWORD userID, COLORREF * color)
+{
+	if (userInfos.size() <= 0) { //맵의 사이즈가 0이라는 것은 뭔가 문제가 있다.
+		return false;
+	}
+
+	if (userInfos.find(userID) != userInfos.end()) {
+		*color = userInfos[userID].color;
+		return true;
+	}
+
+	return false;
+}
+
 

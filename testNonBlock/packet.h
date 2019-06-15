@@ -10,6 +10,7 @@
 #pragma pack(push)
 #pragma pack(1)
 
+
 typedef struct _tgPacketHeader
 {
 	DWORD	PktID;
@@ -20,11 +21,13 @@ typedef struct _tgPacketHeader
 }PACKETHEADER;
 
 
-#define PKT_REQ_LOGIN		0xa0000001
+#define PKT_REQ_LOGIN			0xa0000001
+#define PKT_REQ_BEFORE_JOIN		0xa0000003 //이전에 로그인했다는 유저라고 알림.
 typedef struct  _tgLogin : PACKETHEADER
 {
 	DWORD time;
 }LOGIN;
+
 
 #define PKT_REQ_LOGOUT		0xa0000002
 typedef struct  _tgLogout : PACKETHEADER
@@ -43,6 +46,7 @@ typedef struct  _tgRPoint : PACKETHEADER
 #define PKT_GAME_TEXT_ADD	0x10000001
 typedef struct _tgGameTextAdd : PACKETHEADER {
 	char gameText[20];
+	int posX;
 } TEXT_ADD;
 
 #pragma pack(pop)
