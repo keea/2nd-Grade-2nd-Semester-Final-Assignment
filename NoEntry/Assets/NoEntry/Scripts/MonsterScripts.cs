@@ -13,31 +13,53 @@ public class MonsterScripts : MonoBehaviour
     public float intervalDir;
     public float offset;
 
+    public bool isTuto;
+    public bool isTutoPlay;
+    public bool isTutoFire;
+
+    public GameObject tutoObj;
+
 
     // Start is called before the first frame update
     void Start()
     {
         tick = fireTime;
+        isTuto = true;
+        isTutoPlay = false;
+        isTutoFire = true;
     }
 
     // Update is called once per frame
     void Update()
     {
-        //마우스 위치를 향하도록 발사위치 조정
-        Vector2 difference = Camera.main.ScreenToWorldPoint(Input.mousePosition) - transform.position;
-        float rotZ = Mathf.Atan2(difference.y, difference.x) * Mathf.Rad2Deg;
-        fireDir.transform.rotation = Quaternion.Euler(0f,0f,rotZ+offset);
-        fireDir.transform.position  = Vector2.zero+(difference.normalized * 2.0f);
+        if(!isTuto){
+            //마우스 위치를 향하도록 발사위치 조정
+            Vector2 difference = Camera.main.ScreenToWorldPoint(Input.mousePosition) - transform.position;
+            float rotZ = Mathf.Atan2(difference.y, difference.x) * Mathf.Rad2Deg;
+            fireDir.transform.rotation = Quaternion.Euler(0f,0f,rotZ+offset);
+            fireDir.transform.position  = Vector2.zero+(difference.normalized * 2.0f);
 
-        if(tick <= 0)
-        {
-            //총알 발사한다.
-            Instantiate(bullet, fireDir.transform.position, fireDir.transform.rotation);
+            if(tick <= 0)
+            {
+                //총알 발사한다.
+                Instantiate(bullet, fireDir.transform.position, fireDir.transform.rotation);
             
-            tick = fireTime;
-        }else
-        {
-            tick -= Time.deltaTime;
+             tick = fireTime;
+            }else
+            {
+                tick -= Time.deltaTime;
+            }
+        }else{
+            if(isTutoPlay){
+                Vector2 difference = tutoObj.transform.position - transform.position;
+                float rotZ = Mathf.Atan2(difference.y, difference.x) * Mathf.Rad2Deg;
+                fireDir.transform.rotation = Quaternion.Euler(0f,0f,rotZ+offset);
+                fireDir.transform.position  = Vector2.zero+(difference.normalized * 2.0f);
+                if(isTutoFire){
+                    Instantiate(bullet, fireDir.transform.position, fireDir.transform.rotation);
+                    isTutoFire = false;
+                }
+            }
         }
     }
 }

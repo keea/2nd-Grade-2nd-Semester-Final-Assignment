@@ -35,6 +35,8 @@ public class GameManager : MonoBehaviour
 
     bool isShowResult;
 
+    public bool isTimeInit;
+
     void Awake(){
         Screen.SetResolution(Screen.width, Screen.width * 16/9, true);
     }
@@ -54,11 +56,17 @@ public class GameManager : MonoBehaviour
         CreateRandomRespown();
         UnVisibleBackgroundLiner();
         isShowResult = false;
+        isTimeInit = false;
     }
 
     // Update is called once per frame
     void Update()
     {
+        if(isTimeInit){
+            time = 0;
+            isTimeInit = false;
+        }
+
         uiManager.setTimeText(time);
 
         if(cmdList.Count > 0)
@@ -74,7 +82,7 @@ public class GameManager : MonoBehaviour
                 break;
 
                 case STATE.DEATH_TO_BULLET:
-                    result.deathToCrash+=1;
+                    result.deathToAttack+=1;
                 break;
             }
 
@@ -105,39 +113,6 @@ public class GameManager : MonoBehaviour
             CreateMoveObject();
             time+=Time.deltaTime;
         }
-
-        // if(hp<=0){
-        //     StartCoroutine("SlowMotion");
-        //     if(isShowResult)
-        //         SetResultUiPanel();
-        // }
-        // else
-        // {
-        //     if(cmdList.Count > 0)
-        // {
-        //     switch (cmdList[0].type)
-        //     {
-        //         case STATE.DEATH_TO_MONSTER:
-        //         result.deathToMonster+=1;
-        //         break;
-
-        //         case STATE.DEATH_TO_CRASH:
-        //         result.deathToCrash+=1;
-        //         break;
-
-        //         case STATE.DEATH_TO_BULLET:
-        //         result.deathToAttack+=1;
-        //         break;
-        //     }
-        //     hp-=1;
-        //     moveObjects.Remove(cmdList[0].instanceId);
-        //     cmdList.RemoveAt(0);
-        //     countCreateObj-=1;
-        //     uiManager.setHpText(hp);
-        // }
-        // CreateMoveObject();
-        // time+=Time.deltaTime;
-        // }
     }
 
     //움직이는 객체 생성.
@@ -145,11 +120,6 @@ public class GameManager : MonoBehaviour
     {
         if(countCreateObj < createMaxNum){
             if(tick <= 0.0){
-                //랜덤한 위치에서 생성.
-                //Instantitate(생성할오브젝트, postion, rotation)
-                //Quaternion.identity = rotation(회전각)이 0,0,0 임을 의미.
-                //int randNum = Random.Range(0, (MAX_CREATE_POSTION - countCreateObj)-1);
-                
                 GameObject obj = Instantiate(gameObj[Random.Range(0, gameObj.Length)], respownPos[createPositionIndex].transform.position, Quaternion.identity);
                 tick = createTime;
                 countCreateObj++;
@@ -189,7 +159,6 @@ public class GameManager : MonoBehaviour
         int randNum = Random.Range(0, (MAX_CREATE_POSTION));
         createPositionIndex = randNum;
         respownPos[createPositionIndex].GetComponent<SpriteRenderer>().sprite = respownSpriteOn;
-        //respownPos.transform.position = createPosition;
     }
 
     public void AddActions(Command cmd){
