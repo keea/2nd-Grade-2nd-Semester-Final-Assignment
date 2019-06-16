@@ -5,7 +5,7 @@ using UnityEngine;
 public class MonsterScripts : MonoBehaviour
 {
     float tick = 0.0f;
-    public float fireTime; //발사하는 동안 걸리는 시간.
+   
 
     public GameObject fireDir; //발사 위치
     public GameObject bullet; //총알
@@ -19,14 +19,30 @@ public class MonsterScripts : MonoBehaviour
 
     public GameObject tutoObj;
 
+    float fireTime; //발사하는 동안 걸리는 시간.
+    float rotationSpeed;
+    float distance;
+
+    public LineRenderer lineOfSight;
+    public BoxCollider2D lineCollider;
+
 
     // Start is called before the first frame update
     void Start()
     {
+        int difficulty = PlayerPrefs.GetInt("difficulty");
+        GameBalance balance =  DataHelper.LoadData<GameBalance>("gameBalance", difficulty);
+        fireTime = balance.monsterFireTime;
+        rotationSpeed = balance.monsterRotationSpeed;
+        distance = balance.monsterDistance;
+        lineCollider.offset = new Vector2(0,balance.monsterColliderOffsetY);
+        lineCollider.size = new Vector2(1,balance.monsterColliderOffSizeY);
+
         tick = fireTime;
         isTuto = true;
         isTutoPlay = false;
         isTutoFire = true;
+        //Physics2D.queriesStartInColliders = false;
     }
 
     // Update is called once per frame
@@ -49,6 +65,12 @@ public class MonsterScripts : MonoBehaviour
             {
                 tick -= Time.deltaTime;
             }
+
+            //회전.
+            transform.Rotate(Vector3.forward * rotationSpeed * Time.deltaTime);
+            lineOfSight.SetPosition(1, transform.position + transform.up * distance);
+            lineOfSight.SetPosition(0, transform.position);
+
         }else{
             if(isTutoPlay){
                 Vector2 difference = tutoObj.transform.position - transform.position;

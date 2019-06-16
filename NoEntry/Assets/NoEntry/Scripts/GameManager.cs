@@ -8,14 +8,12 @@ public class GameManager : MonoBehaviour
 {
     const int MAX_CREATE_POSTION = 4;
     public GameObject[] gameObj;
-    public float createTime;
     float tick = 0.0f;
     public GameObject[] respownPos;
     public Sprite respownSpriteOn;
     public Sprite respownSpriteOff;
 
-    public int createMaxNum;
-    int countCreateObj;
+
     int createPositionIndex;
 
     ResonForDeath result;
@@ -26,7 +24,8 @@ public class GameManager : MonoBehaviour
 
     Dictionary<int, GameObject> moveObjects;
 
-    public int maxHp;
+    int countCreateObj;
+
     int hp;
 
     float time;
@@ -37,6 +36,10 @@ public class GameManager : MonoBehaviour
 
     public bool isTimeInit;
 
+    int createMaxNum;
+    int maxHp;
+    float createTime;
+
     void Awake(){
         Screen.SetResolution(Screen.width, Screen.width * 16/9, true);
     }
@@ -44,6 +47,13 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        int difficulty = PlayerPrefs.GetInt("difficulty");
+        GameBalance balance =  DataHelper.LoadData<GameBalance>("gameBalance", difficulty);
+
+        createMaxNum = balance.createMaxNum;
+        maxHp = balance.maxHp;
+        createTime = balance.createTime;
+
         Time.timeScale = 1;
         result = new ResonForDeath();
         moveObjects = new Dictionary<int, GameObject>();

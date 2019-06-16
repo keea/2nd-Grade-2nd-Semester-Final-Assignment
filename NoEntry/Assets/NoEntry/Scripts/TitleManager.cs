@@ -11,8 +11,10 @@ public class TitleManager : MonoBehaviour
         Screen.SetResolution(Screen.width, Screen.width * 16/9, true);
     }
 
-    public void GoGameScene(){
+    public void GoGameScene(int difficulty){
+        Debug.Log("난이도 : " + difficulty);
         Time.timeScale = 1;
+        PlayerPrefs.SetInt("difficulty", difficulty);
         StartCoroutine("Transitions");
     }
 

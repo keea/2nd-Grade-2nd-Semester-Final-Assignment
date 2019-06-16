@@ -106,7 +106,6 @@ public class MoveObject : MonoBehaviour
     {
         GM.VisibleBackgroundLiner(obj_color, OnMouseDonwTime+0.25f);
         //마우스 드래그
-        Debug.Log(OnMouseDonwTime);
         anim.SetBool("isPingPongZoom", true);
         OnMouseDonwTime += Time.deltaTime;
 
