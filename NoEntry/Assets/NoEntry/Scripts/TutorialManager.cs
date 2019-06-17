@@ -13,6 +13,12 @@ public class TutorialManager : MonoBehaviour
 
    bool isTutoEnd = false;
 
+   void Start(){
+      if(PlayerPrefs.GetInt("isClearTuto") != 0){
+         popUpIndex = popUps.Length-1;
+      }
+   }
+
    void Update()
    {
       if(popUpIndex >= popUps.Length)
@@ -30,6 +36,7 @@ public class TutorialManager : MonoBehaviour
       }
 
       if(popUpIndex == popUps.Length-1){
+         PlayerPrefs.SetInt("isClearTuto", 1);
          GameObject.Find("Monster").GetComponent<MonsterScripts>().isTuto = false;
          skipButton.SetActive(false);
          if(!isTutoEnd){
@@ -55,6 +62,7 @@ public class TutorialManager : MonoBehaviour
    }
 
    public void OnClickSkipBtn(){
+      PlayerPrefs.SetInt("isClearTuto", 1);
       popUpIndex = popUps.Length-1;
    }
 }

@@ -41,7 +41,7 @@ public class GameManager : MonoBehaviour
     float createTime;
 
     void Awake(){
-        Screen.SetResolution(Screen.width, Screen.width * 16/9, true);
+        
     }
 
     // Start is called before the first frame update

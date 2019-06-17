@@ -1,0 +1,34 @@
+{
+    "items": [
+        {
+            "createMaxNum": 3,
+            "maxHp": 10,
+            "createTime": 5,
+            "monsterFireTime": 8,
+            "monsterRotationSpeed": 5,
+            "monsterDistance": 5,
+            "monsterColliderOffsetY": 3.25,
+            "monsterColliderOffSizeY": 4.5
+        },
+        {
+            "createMaxNum": 4,
+            "maxHp": 10,
+            "createTime": 4,
+            "monsterFireTime": 5,
+            "monsterRotationSpeed": 7,
+            "monsterDistance": 10,
+            "monsterColliderOffsetY": 5.75,
+            "monsterColliderOffSizeY": 9.5
+        },
+        {
+            "createMaxNum": 4,
+            "maxHp": 10,
+            "createTime": 3,
+            "monsterFireTime": 3,
+            "monsterRotationSpeed": 10,
+            "monsterDistance": 15,
+            "monsterColliderOffsetY": 8.25,
+            "monsterColliderOffSizeY": 14.5
+        }
+    ]
+}

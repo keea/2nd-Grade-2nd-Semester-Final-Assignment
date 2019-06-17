@@ -8,7 +8,7 @@ public class TitleManager : MonoBehaviour
     public Material mat;
 
     void Awake(){
-        Screen.SetResolution(Screen.width, Screen.width * 16/9, true);
+        PlayerPrefs.SetInt("isClearTuto", 0);
     }
 
     public void GoGameScene(int difficulty){
