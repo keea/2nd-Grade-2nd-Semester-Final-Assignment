@@ -26,6 +26,7 @@ typedef struct _tgPacketHeader
 typedef struct  _tgLogin : PACKETHEADER
 {
 	DWORD time;
+	int score; //점수도 같이 보냄.
 }LOGIN;
 
 
@@ -48,6 +49,16 @@ typedef struct _tgGameTextAdd : PACKETHEADER {
 	char gameText[20];
 	int posX;
 } TEXT_ADD;
+
+#define PKT_GAME_SCORE_UP	0x10000002
+typedef struct _tgGameScoreUp : PACKETHEADER {
+	char gameText[20];
+}UP_SCORE;
+
+#define PKT_GAME_SCORE_DOWN	0x10000003
+typedef struct _tgGameScoreDown : PACKETHEADER {
+	int dieNum;
+}DOWN_SCORE;
 
 #pragma pack(pop)
 

@@ -248,19 +248,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 							{
 								LOGIN *pLogin = (LOGIN *)pHeader;
 								
-								g_userInfoCtrl.AddUserInfo(*pHeader);
+								g_userInfoCtrl.AddUserInfo(*pLogin);
 
 								//로그인 한 시간이 같으면 내 아이디로 지정
 								if (g_loginTime == pLogin->time) {
 									isLogin = true;
 									g_userInfoCtrl.SetMyInfo(pLogin->userID);
+									g_textInfoCtrl.SetMyId(pLogin->userID);
 									OutputDebugString("로그인 했다.");
 								}
 								else {
-									pLogin->PktID = PKT_REQ_BEFORE_JOIN;
-									UserInfo info = g_userInfoCtrl.GetMyInfo();
-									strcpy(pLogin->userStrID, info.userName);
-									Send((char *)pLogin, pLogin->PktSize);
+									if (isLogin) {
+										pLogin->PktID = PKT_REQ_BEFORE_JOIN;
+										UserInfo info = g_userInfoCtrl.GetMyInfo();
+										pLogin->score = info.score; //점수도 같이 보낸다.
+										strcpy(pLogin->userStrID, info.userName);
+										Send((char *)pLogin, pLogin->PktSize);
+									}
 								}
 							}
 							break;
@@ -268,7 +272,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 							case PKT_REQ_BEFORE_JOIN:
 							{
 								LOGIN *pLogin = (LOGIN *)pHeader;
-								g_userInfoCtrl.AddUserInfo(*pHeader);
+								g_userInfoCtrl.AddUserInfo(*pLogin);
 							}
 							break;
 
@@ -279,10 +283,34 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 								strcpy(text.text, pText->gameText);
 								text.userID = pText->userID;
 								text.pos.x = pText->posX;
-								text.pos.y = 0;
+								text.pos.y = 25;
 								if(g_userInfoCtrl.GetColor(text.userID, &text.color))
 									g_textInfoCtrl.Add(text);
 							}
+							break;
+
+							case PKT_GAME_SCORE_UP:
+							{
+								UP_SCORE *pData = (UP_SCORE*)pHeader;
+								char tempText[20];
+								strcpy(tempText, pData->gameText);
+
+								//글자가 있는지 확인하고,
+								if(g_textInfoCtrl.CheckText(tempText) == SCORE_UP){
+									//글자를 지운다.
+									g_textInfoCtrl.DelText(tempText);
+									//점수를 높인다.
+									g_userInfoCtrl.AddScore(pData->userID);
+								}
+							}
+							break;
+
+							case PKT_GAME_SCORE_DOWN:
+							{
+								DOWN_SCORE *pData = (DOWN_SCORE*)pHeader;
+								g_userInfoCtrl.DownScore(pData->userID, pData->dieNum); //점수를 깍는다.
+							}
+
 							break;
 
 							case PKT_REQ_LOGOUT: {
@@ -408,6 +436,7 @@ LRESULT CALLBACK EditFunction(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 				login.PktSize = sizeof(LOGIN);
 				g_loginTime = time(NULL); //로그인 한 시간 초 단위로 얻기.
 				login.time = g_loginTime; 
+				login.score = 0; //처음이니까 점수는 0
 
 				strcpy(login.userStrID, g_myStrID);
 				Send((char *)&login, login.PktSize);
@@ -425,7 +454,7 @@ LRESULT CALLBACK EditFunction(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 				char log[1024];
 				sprintf(log, "결과 값은 %d\n", check);
 				OutputDebugString(log);
-				if (check == ADD_TEXT) {
+				if (check == ADD_TEXT) { 
 					//추가한 데이터를 보낸다.
 					TEXT_ADD textAdd;
 					textAdd.PktID = PKT_GAME_TEXT_ADD;
@@ -437,11 +466,15 @@ LRESULT CALLBACK EditFunction(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 				}
 				else if (check == SCORE_UP) {
 					//점수 데이터를 보낸다.
-
+					UP_SCORE scoreUp;
+					scoreUp.PktID = PKT_GAME_SCORE_UP;
+					scoreUp.PktSize = sizeof(UP_SCORE);
+					strcpy(scoreUp.gameText, text); //지워줄 텍스트 보내기
+					Send((char *)&scoreUp, scoreUp.PktSize);
 				}
 			}
 
-			g_inputText[0] = '\0';
+			g_inputText[0] = '\0'; //앞에 끝을 나타내는 문자를 넣어 아무것도 안적히게 보이게 하기.
 			isInputText = false;
 		}
 	}
@@ -480,12 +513,36 @@ void Update(DWORD tick) {
 	FillRect(hdcBuffer, &bufferRT, (HBRUSH)GetStockObject(WHITE_BRUSH));
 	
 	//여기에 그리기 함수
-	TextOut(hdcBuffer, 10, 10, g_inputText, strlen(g_inputText));
+	if (!isLogin) { //로그인 안한 경우 로그인 안내문 띄우기.
+		TextOut(hdcBuffer, 10, 10, "엔터를 쳐서 로그인을 해주세요!", strlen("엔터를 쳐서 로그인을 해주세요!")); //입력한 데이터 출력.
+	}
+	else { //로그인 한 경우 데이터 게임시작하도록 하기.
+		TextOut(hdcBuffer, 10, 10, "엔터를 쳐서 글자를 추가하거나, 있는 글자를 쳐주세요.", strlen("엔터를 쳐서 글자를 추가하거나, 있는 글자를 쳐주세요.")); //입력한 데이터 출력.
+	}
+
+
+	if (isInputText) { //텍스트 입력 중이다.
+		Rectangle(hdcBuffer, bufferRT.left+500, bufferRT.bottom - 50, bufferRT.right-500, bufferRT.bottom-10);
+		SetTextAlign(hdcBuffer, TA_CENTER);//가운데 정렬
+		TextOut(hdcBuffer, bufferRT.right / 2, bufferRT.bottom - 40, g_inputText, strlen(g_inputText)); //입력한 데이터 출력.
+	}
+	
 	g_userInfoCtrl.ShowUsers(bufferRT, hdcBuffer); //유저 정보창
 
-	g_textInfoCtrl.ShowText(tick, hdcBuffer); //텍스트들
+	int dieNum = 0; //밑에 빠진 갯수들.
+	g_textInfoCtrl.ShowText(tick, hdcBuffer, &dieNum); //텍스트들
 
 	BitBlt(hDcMain, 0, 0, bufferRT.right, bufferRT.bottom, hdcBuffer, 0, 0, SRCCOPY); //배껴그리기
 	DeleteObject(SelectObject(hdcBuffer, OldBitmap)); // 종이 원래대로 한 후 제거
 	DeleteDC(hdcBuffer);
+	ReleaseDC(g_hWnd, hDcMain);
+
+	if (dieNum > 0) {
+		//죽은게 있다면 패킷을 보낸다.
+		DOWN_SCORE scoreDown;
+		scoreDown.PktID = PKT_GAME_SCORE_DOWN;
+		scoreDown.PktSize = sizeof(DOWN_SCORE);
+		scoreDown.dieNum = dieNum;
+		Send((char *)&scoreDown, scoreDown.PktSize);
+	}
 }
